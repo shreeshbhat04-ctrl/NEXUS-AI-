@@ -1,11 +1,10 @@
-# nexus_ai
+# Nexus AI
 
 **An AI-powered multi-agent healthcare platform** that provides personalized chronic care management through intelligent conversational AI, real-time medication safety analysis, and transparent human-in-the-loop doctor handoffs.
 
->  **⚠️ DISCLAIMER:**
-> This working demo currently has a **free-tier API key** attached to it; access to the necessary models may be limited. Thus, while experiencing some of the features shown in the video, this happened due to **the billing issues in my account**.  I tried my best to make sure my project holds up to the video, & i had my internals.So, thank you for your notice. Continue down. 
-
-
+> [!WARNING]
+> **DISCLAIMER:**
+> This working demo currently has a **free-tier API key** attached to it; access to the necessary models may be limited. Thus, while experiencing some of the features shown in the video, this happened due to **billing limits in the account**. I tried my best to make sure the project holds up to the demo, and it has all required internals. Thank you for your understanding.
 
 Cloud Run API endpoint (for testing):
 https://cure-quest-api-315569715049.us-central1.run.app
@@ -23,11 +22,12 @@ https://cure-quest-api-315569715049.us-central1.run.app
 - [AI/ML Section](#aiml-section)
 - [Results and Metrics](docs/results_and_metrics.md)
 - [Datasets Used](Datasets/)
-- [Styling & Theming](DESIGN.md#styling--theming)
 - [Appendix](#appendix)
 
+---
+
 ## Project Overview
-nexus_ai coordinates care across multiple dimensions:
+Nexus AI coordinates care across multiple dimensions:
 - **Voice/Chat AI** for patient questions and follow-up guidance.
 - **Document upload** for prescription scans and medical artifacts.
 - **HITL review** to produce doctor-ready summaries.
@@ -43,20 +43,21 @@ Shreesha is a 22-year-old patient managing two chronic conditions simultaneously
 
 The demo walks through drug interaction questions, document uploads, doctor handoff reports, medication reminders, and Gmail-based care summaries.
 
+---
+
 ## Demo Media
 
-## This is an agentic workflow in ADK environment
+### This is an agentic workflow in ADK environment
 ![ADK demo video](assets/Working_adk_demo.gif)
-<!--
-![ADK demo screenshot](assets/Screenshot%202026-04-27%20231914.png)
-![OCR input sample](assets/Ocr_input%20(1).png)
-![Latency benchmark](assets/Remarkable_latency_of_alloydb.png)
--->
 
-## For detailed diagrams of Agentic breakdown, refer here:
+### Detailed Agentic Breakdown Diagrams
+For detailed diagrams of the agentic breakdown, refer here:
 [Agent Diagrams](docs/Agent_Digrams)
 
+---
+
 ## Key Features
+
 ### Recipe Studio (Browse Recipes)
 The **Recipe Studio** provides personalized nutritional guidance by fetching curated recipes from **AlloyDB** that are safe and beneficial for the patient's specific chronic conditions (e.g., eczema-friendly ingredients).
 - **Curated Selection**: Pre-validated recipes for common care journeys.
@@ -64,18 +65,21 @@ The **Recipe Studio** provides personalized nutritional guidance by fetching cur
 - **Marketplace Sync**: Direct link to ingredient marketplaces for seamless shopping.
 
 ### HealthConnect & Watch Integration
-nexus_ai syncs with **Android HealthConnect** to monitor real-time patient vitals (heart rate, sleep, activity) via wearable devices.
+Nexus AI syncs with **Android HealthConnect** to monitor real-time patient vitals (heart rate, sleep, activity) via wearable devices.
 - **Patient Brain Sync**: Watch data is periodically pushed to the AlloyDB "Patient Brain" to ground the AI's conversational context.
 - **Proactive Alerts**: If abnormal vitals are detected, the system can trigger a proactive check-in or escalate to the Doctor Workspace via Asana.
 
+---
+
 ## Quick Start
+
 ### Prerequisites
 - Python 3.12+
 - Node.js 18+
 - Google Cloud project with APIs enabled (Drive, Calendar, Gmail, Speech, Maps)
 - AlloyDB instance (or use SQLite for local dev)
 
-### 1) Backend setup
+### 1) Backend Setup
 ```powershell
 # Create virtual environment
 python -m venv .venv
@@ -93,7 +97,7 @@ python -m nexus_ai.scripts.seed
 uvicorn nexus_ai.app:app --reload
 ```
 
-### 2) Frontend setup
+### 2) Frontend Setup
 ```powershell
 cd frontend
 npm install
@@ -103,6 +107,7 @@ npm run dev
 ---
 
 ## Tech Stack
+
 ### Core
 - **Backend**: FastAPI, SQLAlchemy, Pydantic.
 - **Database**: AlloyDB (PostgreSQL-compatible) for patient memory.
@@ -120,7 +125,6 @@ npm run dev
 ## Why this stack?
 
 ```mermaid
-
 graph LR
 
 %% Row 1
@@ -167,15 +171,14 @@ classDef outcome fill:#0f9d58,color:#fff,stroke:#0b7d43;
 class A1,A2,A3,A4,A5,A6,A7,A8,A9 tech;
 class B1,B2,B3,B4,B5,B6,B7,B8,B9 capability;
 class C1,C2,C3,C4,C5,C6,C7,C8,C9 outcome;
-
-
 ```
 
 ---
 
 ## Architecture
+
 ### High-Level Design
-nexus_ai uses a multi-agent approach where a **Root Agent** (ADK) orchestrates specialized sub-agents.
+Nexus AI uses a multi-agent approach where a **Root Agent** (ADK) orchestrates specialized sub-agents.
 
 ```mermaid
 graph TD
@@ -335,7 +338,10 @@ nexus_ai/
 └── pyproject.toml
 ```
 
+---
+
 ## Component Index
+
 ### Index Method
 Each module is indexed with its purpose, inputs, and complexity. Where exact internals cannot be fully inferred without runtime interaction, entries are marked `manual-review`.
 
@@ -367,12 +373,16 @@ Each module is indexed with its purpose, inputs, and complexity. Where exact int
 | `src/nexus_ai/agents/orchestrator.py` | Task delegation | User message | Stateless reasoning | `route_conversation` | Specialist Agents | Unit tests | Intent-bound |
 | `src/nexus_ai/mcp/server.py` | Tool access layer | Tool requests | Server lifecycle | `mcp.server` | DB, Services | `test_mcp.py` | Tool-bound |
 
+---
+
 ## API Contracts
-nexus_ai uses **Pydantic** for strict API contract enforcement. All requests and responses are typed, ensuring safety between the React frontend and FastAPI backend.
+Nexus AI uses **Pydantic** for strict API contract enforcement. All requests and responses are typed, ensuring safety between the React frontend and FastAPI backend.
 - **Intake**: `POST /patient/intake`
 - **Conversation**: `POST /orchestration/conversation-route`
 - **Voice**: `POST /orchestration/voice-route`
 - **HITL Report**: `POST /orchestration/hitl-report`
+
+---
 
 ## Data Flow & State Management
 - **Frontend State**: Managed via **Zustand** for global workspace data and **React Hooks** for local component state.
@@ -575,6 +585,7 @@ class LS,ADMIN local;
 ---
 
 ## AI/ML Section
+
 ### Model Routing
 - **Gemini 3.1 Flash**: Handles complex reasoning, patient check-ins, and multi-turn chat. It leverages AlloyDB grounding to ensure responses are clinical-context-aware.
 - **MedSigLIP**: Integrated for specialized image classification tasks, such as identifying prescription labels and symptom severity from photos.
@@ -605,4 +616,3 @@ For performance benchmarks and OCR accuracy results derived from these datasets,
 - [Connection Architecture](docs/CONNECTION_ARCHITECTURE.md)
 - [Wiring Checklist](docs/WIRING_CHECKLIST.md)
 - [Cloud Run Deployment](docs/CLOUD_RUN_DEPLOYMENT.md)
-

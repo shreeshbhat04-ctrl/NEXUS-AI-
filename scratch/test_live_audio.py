@@ -3,7 +3,7 @@ import os
 from google import genai
 from google.genai import types
 
-api_key = "AIzaSyBrwRY2XYBG9slt4cZw12jmddJVyg7x-PE"
+api_key = os.getenv("GOOGLE_API_KEY")
 model = "gemini-2.5-flash-native-audio-latest"
 
 async def main():

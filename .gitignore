@@ -62,6 +62,10 @@ docs/missing.md
 docs/Next_plan.md
 docs/PLAN_2_IMPLEMENTATION_CHANGE_MAP.md
 docs/PLAN_3_INFORMATION_NEEDED.md
+DESIGN.md
+final_plan.md
+rename_script.py
+rules.md
 
 # Tool-generated indexing directories
 .understand-anything/
