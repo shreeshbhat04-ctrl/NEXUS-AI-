@@ -67,6 +67,9 @@ final_plan.md
 rename_script.py
 rules.md
 
+# Agent Workflows
+agent/workflows/
+
 # Tool-generated indexing directories
 .understand-anything/
 
