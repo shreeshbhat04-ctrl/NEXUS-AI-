@@ -2,12 +2,9 @@
 
 **An AI-powered multi-agent healthcare platform** that provides personalized chronic care management through intelligent conversational AI, real-time medication safety analysis, and transparent human-in-the-loop doctor handoffs.
 
-> [!WARNING]
-> **DISCLAIMER:**
-> This working demo currently has a **free-tier API key** attached to it; access to the necessary models may be limited. Thus, while experiencing some of the features shown in the video, this happened due to **billing limits in the account**. I tried my best to make sure the project holds up to the demo, and it has all required internals. Thank you for your understanding.
 
-Cloud Run API endpoint (for testing):
-https://cure-quest-api-315569715049.us-central1.run.app
+
+
 
 ## Table of Contents
 - [Project Overview](#project-overview)
