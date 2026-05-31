@@ -1,0 +1,189 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "gentle_upma_bowl",
+      "source": "curated",
+      "title": "Gentle Upma Bowl",
+      "description": "Soft semolina with vegetables for a steady meal that pairs well with regular medication timing.",
+      "default_servings": 2,
+      "cook_time": "18 minutes",
+      "meal_type": "breakfast",
+      "ingredients": [
+        { "name": "Roasted semolina", "quantity": 1, "unit": "cup" },
+        { "name": "Water", "quantity": 2.5, "unit": "cups" },
+        { "name": "Carrot", "quantity": 1, "unit": "piece" },
+        { "name": "Green beans", "quantity": 8, "unit": "pieces" },
+        { "name": "Ghee", "quantity": 1, "unit": "tbsp" }
+      ],
+      "instructions": [
+        "Saute vegetables in a small amount of ghee.",
+        "Add semolina and stir for a minute.",
+        "Pour hot water gradually and cook until soft."
+      ],
+      "safety_notes": [
+        { "severity": "info", "message": "A full meal can reduce metformin stomach irritation.", "related_to": "metformin" }
+      ],
+      "condition_fit": ["gentle digestion", "steady energy"],
+      "medication_fit": ["take with food"],
+      "avoid_flags": [],
+      "why_it_fits": "Simple, mild, and practical when appetite is low.",
+      "dietary_pattern": "vegetarian",
+      "cuisine_preference": "South Indian",
+      "image_url": null,
+      "image_status": "unavailable"
+    },
+    {
+      "recipe_id": "ragi_dosa_plate",
+      "source": "curated",
+      "title": "Ragi Dosa Plate",
+      "description": "Millet-based dosa with mild seasoning and balanced texture.",
+      "default_servings": 2,
+      "cook_time": "25 minutes",
+      "meal_type": "breakfast",
+      "ingredients": [
+        { "name": "Ragi flour", "quantity": 1, "unit": "cup" },
+        { "name": "Rice flour", "quantity": 0.25, "unit": "cup" },
+        { "name": "Curd", "quantity": 0.5, "unit": "cup" },
+        { "name": "Onion", "quantity": 1, "unit": "piece" },
+        { "name": "Cumin seeds", "quantity": 1, "unit": "tsp" }
+      ],
+      "instructions": [
+        "Prepare a pourable batter.",
+        "Rest briefly and spread thin on a hot pan.",
+        "Cook both sides and serve warm."
+      ],
+      "safety_notes": [
+        { "severity": "info", "message": "Use a mild side if IBS symptoms are active.", "related_to": "ibs" }
+      ],
+      "condition_fit": ["fiber-forward", "measured carb intake"],
+      "medication_fit": ["steady meal pairing"],
+      "avoid_flags": [],
+      "why_it_fits": "Offers variety while keeping portions measurable.",
+      "dietary_pattern": "vegetarian",
+      "cuisine_preference": "South Indian",
+      "image_url": null,
+      "image_status": "unavailable"
+    },
+    {
+      "recipe_id": "jowar_dosa_wrap",
+      "source": "curated",
+      "title": "Jowar Dosa Wrap",
+      "description": "A light meal with jowar dosa and sauteed vegetable filling.",
+      "default_servings": 2,
+      "cook_time": "22 minutes",
+      "meal_type": "lunch",
+      "ingredients": [
+        { "name": "Jowar flour", "quantity": 1, "unit": "cup" },
+        { "name": "Water", "quantity": 1.5, "unit": "cups" },
+        { "name": "Spinach", "quantity": 1, "unit": "cup" },
+        { "name": "Capsicum", "quantity": 1, "unit": "piece" },
+        { "name": "Paneer", "quantity": 0.5, "unit": "cup" }
+      ],
+      "instructions": [
+        "Make a smooth batter and cook thin dosas.",
+        "Saute filling ingredients until tender.",
+        "Fill, fold, and serve immediately."
+      ],
+      "safety_notes": [],
+      "condition_fit": ["balanced lunch"],
+      "medication_fit": ["midday meal support"],
+      "avoid_flags": [],
+      "why_it_fits": "Keeps lunch satisfying without heavy sauces.",
+      "dietary_pattern": "vegetarian",
+      "cuisine_preference": "Indian",
+      "image_url": null,
+      "image_status": "unavailable"
+    },
+    {
+      "recipe_id": "cooling_curd_rice_bowl",
+      "source": "curated",
+      "title": "Cooling Curd Rice Bowl",
+      "description": "A soft comfort bowl for sensitive digestion days.",
+      "default_servings": 2,
+      "cook_time": "15 minutes",
+      "meal_type": "dinner",
+      "ingredients": [
+        { "name": "Cooked rice", "quantity": 2, "unit": "cups" },
+        { "name": "Plain curd", "quantity": 1.25, "unit": "cups" },
+        { "name": "Cucumber", "quantity": 0.5, "unit": "cup" },
+        { "name": "Ginger", "quantity": 1, "unit": "tsp" },
+        { "name": "Coriander", "quantity": 2, "unit": "tbsp" }
+      ],
+      "instructions": [
+        "Mix rice and curd until creamy.",
+        "Fold in cucumber, ginger, and coriander.",
+        "Serve cool or at room temperature."
+      ],
+      "safety_notes": [
+        { "severity": "caution", "message": "Use tolerated dairy alternatives if sensitive.", "related_to": "dairy" }
+      ],
+      "condition_fit": ["gentle dinner", "recovery meal"],
+      "medication_fit": ["take with food"],
+      "avoid_flags": ["dairy-sensitive"],
+      "why_it_fits": "Useful when appetite is low but medication still needs meal support.",
+      "dietary_pattern": "vegetarian",
+      "cuisine_preference": "South Indian",
+      "image_url": null,
+      "image_status": "unavailable"
+    },
+    {
+      "recipe_id": "turmeric_lentil_stew",
+      "source": "curated",
+      "title": "Turmeric Lentil Stew",
+      "description": "Mild lentils with vegetables for a warm, protein-forward bowl.",
+      "default_servings": 3,
+      "cook_time": "28 minutes",
+      "meal_type": "dinner",
+      "ingredients": [
+        { "name": "Yellow lentils", "quantity": 1, "unit": "cup" },
+        { "name": "Water", "quantity": 3, "unit": "cups" },
+        { "name": "Turmeric", "quantity": 0.5, "unit": "tsp" },
+        { "name": "Tomato", "quantity": 1, "unit": "piece" },
+        { "name": "Spinach", "quantity": 1, "unit": "cup" }
+      ],
+      "instructions": [
+        "Simmer lentils with turmeric and water.",
+        "Add tomato and cook until soft.",
+        "Stir in spinach and finish before serving."
+      ],
+      "safety_notes": [],
+      "condition_fit": ["balanced dinner", "gentle protein"],
+      "medication_fit": ["evening meal support"],
+      "avoid_flags": [],
+      "why_it_fits": "Protein and soft texture make it practical for routine meals.",
+      "dietary_pattern": "vegetarian",
+      "cuisine_preference": "Indian",
+      "image_url": null,
+      "image_status": "unavailable"
+    },
+    {
+      "recipe_id": "oats_nut_snack_cup",
+      "source": "curated",
+      "title": "Oats and Nut Snack Cup",
+      "description": "A quick snack cup with oats, yogurt, and nuts for steady energy.",
+      "default_servings": 1,
+      "cook_time": "7 minutes",
+      "meal_type": "snack",
+      "ingredients": [
+        { "name": "Rolled oats", "quantity": 0.5, "unit": "cup" },
+        { "name": "Plain yogurt", "quantity": 0.5, "unit": "cup" },
+        { "name": "Mixed nuts", "quantity": 2, "unit": "tbsp" },
+        { "name": "Apple", "quantity": 0.5, "unit": "piece" }
+      ],
+      "instructions": [
+        "Soak oats briefly or use pre-soaked oats.",
+        "Mix with yogurt and nuts.",
+        "Top with chopped apple and serve."
+      ],
+      "safety_notes": [],
+      "condition_fit": ["snack support"],
+      "medication_fit": ["avoid long fasting gaps"],
+      "avoid_flags": [],
+      "why_it_fits": "Helps bridge long gaps between main meals.",
+      "dietary_pattern": "vegetarian",
+      "cuisine_preference": "any",
+      "image_url": null,
+      "image_status": "unavailable"
+    }
+  ]
+}

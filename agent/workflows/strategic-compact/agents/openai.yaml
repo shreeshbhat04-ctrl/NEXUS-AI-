@@ -1,0 +1,4 @@
+interface:
+  display_name: "Strategic Compact"
+  short_description: "Suggest manual /compact at logical boundaries"
+  default_prompt: "Use $strategic-compact to decide when to compact context between research, planning, implementation, and testing phases."

@@ -1,0 +1,85 @@
+syntax = "proto3";
+package diet;
+
+// ─── Common ────────────────────────────────────────────────────────
+
+message Empty {}
+
+// ─── Diet Service ──────────────────────────────────────────────────
+
+message DietCondition {
+  string name = 1;
+  string condition_type = 2;
+}
+
+message DietPlanRequest {
+  repeated DietCondition conditions = 1;
+  string medication_name = 2;
+  string pharmacy_summary = 3;
+}
+
+message DietPlanResponse {
+  bool success = 1;
+  string plan_json = 2; // JSON representation of the diet plan
+  string message = 3;
+}
+
+message RecipeListRequest {
+  string meal_type = 1;
+  string medication_name = 2;
+  repeated DietCondition conditions = 3;
+}
+
+message RecipeResult {
+  string recipe_id = 1;
+  string title = 2;
+  string summary = 3;
+}
+
+message RecipeListResponse {
+  bool success = 1;
+  repeated RecipeResult recipes = 2;
+  string message = 3;
+}
+
+message RecipeGenerateRequest {
+  repeated DietCondition conditions = 1;
+  string medication_name = 2;
+  string preferences_json = 3; // JSON containing preferences like constraints, target_calories
+}
+
+message RecipeGenerateResponse {
+  bool success = 1;
+  string recipes_json = 2; // JSON containing the generated recipes
+  string message = 3;
+}
+
+message RecipeScaleRequest {
+  string recipe_id = 1;
+  int32 servings = 2;
+  repeated DietCondition conditions = 3;
+  string medication_name = 4;
+}
+
+message RecipeScaleResponse {
+  bool success = 1;
+  string recipe_json = 2; // JSON containing the scaled recipe
+  string message = 3;
+}
+
+message RecipeGetRequest {
+  string recipe_id = 1;
+}
+
+message RecipeGetResponse {
+  bool found = 1;
+  string recipe_json = 2; // JSON containing the recipe
+}
+
+service DietService {
+  rpc BuildDietPlan(DietPlanRequest) returns (DietPlanResponse);
+  rpc ListRecipes(RecipeListRequest) returns (RecipeListResponse);
+  rpc GenerateRecipes(RecipeGenerateRequest) returns (RecipeGenerateResponse);
+  rpc ScaleRecipe(RecipeScaleRequest) returns (RecipeScaleResponse);
+  rpc GetRecipe(RecipeGetRequest) returns (RecipeGetResponse);
+}

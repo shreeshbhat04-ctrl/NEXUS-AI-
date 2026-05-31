@@ -1,0 +1,48 @@
+syntax = "proto3";
+package vision;
+
+// ─── Common ────────────────────────────────────────────────────────
+
+message Empty {}
+
+// ─── Vision Service ────────────────────────────────────────────────
+
+message ImageAnalysisRequest {
+  bytes image_bytes = 1;
+  string mime_type = 2;
+  string analysis_type = 3; // "SYMPTOM", "MEDICATION_STATE", etc.
+}
+
+message ImageAnalysisResponse {
+  bool success = 1;
+  string analysis = 2;
+  string classification = 3;
+  string message = 4;
+}
+
+message ImageClassifyRequest {
+  string file_path = 1;
+}
+
+message ImageClassifyResponse {
+  string classification = 1; // "PRESCRIPTION", "SYMPTOM", "OTHER"
+}
+
+message DiagnosticImageRequest {
+  bytes image_bytes = 1;
+  string mime_type = 2;
+  string analysis_dict_json = 3; // JSON representation of the analysis dictionary
+}
+
+message DiagnosticImageResponse {
+  bool success = 1;
+  string image_base64 = 2; // Generated diagnostic image in base64
+  string message = 3;
+}
+
+service VisionService {
+  rpc AnalyzeSymptomImage(ImageAnalysisRequest) returns (ImageAnalysisResponse);
+  rpc ClassifyMedicalImage(ImageClassifyRequest) returns (ImageClassifyResponse);
+  rpc AutoAnalyzeImage(ImageAnalysisRequest) returns (ImageAnalysisResponse);
+  rpc GenerateDiagnosticImage(DiagnosticImageRequest) returns (DiagnosticImageResponse);
+}

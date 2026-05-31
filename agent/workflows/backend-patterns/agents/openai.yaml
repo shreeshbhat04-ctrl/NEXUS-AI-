@@ -1,0 +1,4 @@
+interface:
+  display_name: "Backend Patterns"
+  short_description: "API, database, caching, and auth patterns"
+  default_prompt: "Use $backend-patterns to design backend APIs, optimize queries, and apply server-side patterns."

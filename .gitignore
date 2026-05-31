@@ -1,0 +1,68 @@
+# Virtual environment
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+pytest-cache-files-*/
+.coverage
+htmlcov/
+
+# Temp
+.tmp/
+
+# Databases
+*.db
+
+# Environment
+.env
+.env.*
+cloudrun.env
+frontend/.env
+frontend/.env.local
+
+# Build artifacts
+dist/
+build/
+frontend/node_modules/
+frontend/dist/
+
+# Credentials (NEVER commit)
+/credentials/*.json
+
+# Runtime artifacts
+proxy_log.txt
+test_output.txt
+alloydb-auth-proxy-x64.exe
+
+# IDE
+.vscode/
+.idea/
+
+# Media
+assets/*.mp4
+# databases
+.alloydb_init.sql
+.curequest_backup.dump
+.curequest.sql
+# Design & Planning (Local Only)
+design2.md
+docs/Diet_plan.md
+docs/Market_place.md
+docs/WIRING_CHECKLIST.md
+docs/CURE_QUEST_IMPLEMENTATION_METRICS_TRANSCRIPT.md
+docs/DIET_SECTION_RECIPE_ENHANCEMENT_PLAN.md
+docs/Final_Project.md
+docs/PLAN_1_REPO_STATE_AND_MISSING_ENDPOINTS.md
+docs/missing.md
+docs/Next_plan.md
+docs/PLAN_2_IMPLEMENTATION_CHANGE_MAP.md
+docs/PLAN_3_INFORMATION_NEEDED.md
+
+# Tool-generated indexing directories
+.understand-anything/
+

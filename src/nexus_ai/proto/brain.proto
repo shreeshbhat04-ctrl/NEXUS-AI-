@@ -1,0 +1,55 @@
+syntax = "proto3";
+package brain;
+
+// Empty message for health checks
+message Empty {}
+
+message HealthResponse {
+  bool healthy = 1;
+  string message = 2;
+  string version = 3;
+}
+
+// ─── Patient Profile ───────────────────────────────────────────────
+
+message PatientProfileRequest {
+  int32 patient_id = 1;
+}
+
+message PatientProfileResponse {
+  bool found = 1;
+  int32 id = 2;
+  string full_name = 3;
+  string preferred_language = 4;
+  string date_of_birth = 5;       // ISO date string
+  string summary = 6;
+  string google_email = 7;
+  repeated Condition conditions = 8;
+}
+
+// ─── Conditions ────────────────────────────────────────────────────
+
+message Condition {
+  int32 id = 1;
+  string name = 2;
+  string condition_type = 3;
+  string last_updated = 4;         // ISO date string
+  string notes = 5;
+}
+
+message ConditionsRequest {
+  int32 patient_id = 1;
+}
+
+message ConditionsResponse {
+  int32 patient_id = 1;
+  repeated Condition conditions = 2;
+}
+
+// ─── Service ───────────────────────────────────────────────────────
+
+service BrainService {
+  rpc Healthcheck(Empty) returns (HealthResponse);
+  rpc GetPatientProfile(PatientProfileRequest) returns (PatientProfileResponse);
+  rpc GetRelevantConditions(ConditionsRequest) returns (ConditionsResponse);
+}

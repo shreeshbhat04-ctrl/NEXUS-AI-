@@ -1,0 +1,29 @@
+syntax = "proto3";
+package doctor;
+
+// ─── Common ────────────────────────────────────────────────────────
+
+message Empty {}
+
+message HealthResponse {
+  bool healthy = 1;
+  string message = 2;
+  string version = 3;
+}
+
+// ─── Doctor Service ────────────────────────────────────────────────
+
+message DoctorChatRequest {
+  string message = 1;
+}
+
+message DoctorChatResponse {
+  bool success = 1;
+  string response = 2;
+  string message = 3;
+}
+
+service DoctorAgentService {
+  rpc Chat(DoctorChatRequest) returns (DoctorChatResponse);
+  rpc Healthcheck(Empty) returns (HealthResponse);
+}

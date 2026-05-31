@@ -1,0 +1,44 @@
+sources:
+  nexus_ai_alloydb:
+    kind: "postgres"
+    host: "${ALLOYDB_HOST}"
+    port: "5432"
+    database: "${ALLOYDB_DATABASE}"
+    user: "${ALLOYDB_USER}"
+    password: "${ALLOYDB_PASSWORD}"
+
+tools:
+  brain-list-tables:
+    kind: "postgres-list-tables"
+    source: "nexus_ai_alloydb"
+    description: "Inspect nexus_ai tables in AlloyDB."
+
+  brain-get-patient-profile:
+    kind: "postgres-sql"
+    source: "nexus_ai_alloydb"
+    description: "Fetch a patient profile by id."
+    statement: |
+      SELECT id, full_name, preferred_language, summary, created_at
+      FROM patients
+      WHERE id = $1;
+    parameters:
+      - name: patient_id
+        type: integer
+
+  brain-get-relevant-conditions:
+    kind: "postgres-sql"
+    source: "nexus_ai_alloydb"
+    description: "Fetch chronic conditions and recent acute conditions."
+    statement: |
+      SELECT id, patient_id, name, condition_type, last_updated, notes
+      FROM chronic_conditions
+      WHERE patient_id = $1
+        AND (
+          condition_type = 'chronic'
+          OR last_updated IS NULL
+          OR last_updated >= CURRENT_DATE - INTERVAL '180 days'
+        )
+      ORDER BY name;
+    parameters:
+      - name: patient_id
+        type: integer

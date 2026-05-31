@@ -1,0 +1,203 @@
+syntax = "proto3";
+package clinical;
+
+// ─── Common ────────────────────────────────────────────────────────
+
+message Empty {}
+
+// ─── Patient Intake ────────────────────────────────────────────────
+
+message IntakeRequest {
+  string full_name = 1;
+  string preferred_language = 2;
+  string date_of_birth = 3;         // ISO date string
+  string summary = 4;
+  repeated string condition_names = 5;
+}
+
+message IntakeResponse {
+  bool success = 1;
+  int32 patient_id = 2;
+  string full_name = 3;
+  int32 conditions_created = 4;
+  string message = 5;
+}
+
+// ─── Prescription Scan ─────────────────────────────────────────────
+
+message PrescriptionScanRequest {
+  int32 patient_id = 1;
+  string image_reference = 2;
+  string raw_text_hint = 3;
+}
+
+message PrescriptionScanResponse {
+  bool success = 1;
+  int32 prescription_id = 2;
+  string medication_name = 3;
+  string dosage = 4;
+  string instructions = 5;
+  double confidence_score = 6;
+  string review_status = 7;
+  string message = 8;
+}
+
+// ─── Formulary / Alternatives ──────────────────────────────────────
+
+message AlternativeCheckRequest {
+  string medication_name = 1;
+  repeated ConditionRef conditions = 2;
+}
+
+message ConditionRef {
+  string name = 1;
+  string condition_type = 2;
+}
+
+message AlternativeCandidate {
+  string medication_name = 1;
+  string rationale = 2;
+  bool is_generic = 3;
+  double fit_score = 4;
+}
+
+message AlternativeCheckResponse {
+  bool found = 1;
+  repeated AlternativeCandidate alternatives = 2;
+  bool formulary_checked = 3;
+  string summary = 4;
+}
+
+// ─── HITL Escalation ───────────────────────────────────────────────
+
+message EscalationRequest {
+  int32 patient_id = 1;
+  string case_type = 2;
+  string summary = 3;
+  int32 doctor_id = 4;
+  string doctor_name = 5;
+  string doctor_email = 6;
+  string urgency = 7;
+}
+
+message EscalationResponse {
+  bool success = 1;
+  int32 case_id = 2;
+  string status = 3;
+  string external_ticket_id = 4;
+  string external_ticket_url = 5;
+  string message = 6;
+}
+
+// ─── Detailed Report ───────────────────────────────────────────────
+
+message ReportRequest {
+  int32 patient_id = 1;
+  string context_summary = 2;
+}
+
+message ReportResponse {
+  bool success = 1;
+  string report_text = 2;
+}
+
+// ─── AI Comprehension ──────────────────────────────────────────────
+
+message ComprehensionRequest {
+  int32 patient_id = 1;
+  string patient_name = 2;
+  string patient_summary = 3;
+}
+
+message ComprehensionResponse {
+  bool success = 1;
+  string patient_name = 2;
+  string patient_dob = 3;
+  string patient_summary = 4;
+  string ai_analysis = 5;
+  string conditions_json = 6;      // JSON-serialized list
+  string medications_json = 7;     // JSON-serialized list
+}
+
+// ─── Notification ──────────────────────────────────────────────────
+
+message NotifyRequest {
+  int32 patient_id = 1;
+  string channel = 2;
+  string message_type = 3;
+  string message_body = 4;
+}
+
+message NotifyResponse {
+  bool success = 1;
+  int32 notification_id = 2;
+  string delivery_status = 3;
+  string message = 4;
+}
+
+// ─── Conversation Plan ─────────────────────────────────────────────
+
+message ConversationPlanRequest {
+  string message = 1;
+  int32 patient_id = 2;           // optional, 0 if not provided
+}
+
+message ConversationPlanResponse {
+  bool success = 1;
+  string plan_json = 2;           // JSON-serialized conversation plan
+  string message = 3;
+}
+
+// ─── Action Draft (Questioner) ─────────────────────────────────────
+
+message ActionDraftRequest {
+  int32 patient_id = 1;
+  string intent = 2;
+  string message = 3;
+}
+
+message ActionDraftResponse {
+  bool success = 1;
+  string draft_json = 2;          // JSON-serialized draft payload
+  string message = 3;
+}
+
+// ─── Routine ───────────────────────────────────────────────────────
+
+message RoutineRequest {
+  Empty empty = 1;
+}
+
+message RoutineTask {
+  string task_id = 1;
+  string name = 2;
+  bool completed = 3;
+  string source = 4;
+  string title = 5;
+  string short_summary = 6;
+  string full_details = 7;
+  string due_at = 8;
+  string due_on = 9;
+  string notes = 10;
+}
+
+message RoutineResponse {
+  bool success = 1;
+  repeated RoutineTask tasks = 2;
+  string snapshot_json = 3;        // JSON-serialized snapshot
+}
+
+// ─── Service ───────────────────────────────────────────────────────
+
+service ClinicalService {
+  rpc IntakePatient(IntakeRequest) returns (IntakeResponse);
+  rpc ScanPrescription(PrescriptionScanRequest) returns (PrescriptionScanResponse);
+  rpc CheckAlternatives(AlternativeCheckRequest) returns (AlternativeCheckResponse);
+  rpc CreateEscalationCase(EscalationRequest) returns (EscalationResponse);
+  rpc BuildDetailedReport(ReportRequest) returns (ReportResponse);
+  rpc BuildAIComprehension(ComprehensionRequest) returns (ComprehensionResponse);
+  rpc Notify(NotifyRequest) returns (NotifyResponse);
+  rpc BuildConversationPlan(ConversationPlanRequest) returns (ConversationPlanResponse);
+  rpc BuildActionDraft(ActionDraftRequest) returns (ActionDraftResponse);
+  rpc GetDailyRoutine(RoutineRequest) returns (RoutineResponse);
+}

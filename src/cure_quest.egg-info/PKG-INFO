@@ -1,0 +1,280 @@
+Metadata-Version: 2.4
+Name: cure-quest
+Version: 0.1.0
+Summary: Chronic care AI copilot scaffold with FastAPI, MCP, and Google ADK.
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115
+Requires-Dist: google-api-python-client>=2.151.0
+Requires-Dist: google-auth-oauthlib>=1.2.1
+Requires-Dist: google-auth-httplib2>=0.2.0
+Requires-Dist: google-cloud-bigquery>=3.29.0
+Requires-Dist: httpx>=0.27
+Requires-Dist: uvicorn[standard]>=0.30
+Requires-Dist: sqlalchemy>=2.0
+Requires-Dist: psycopg[binary]>=3.2
+Requires-Dist: pydantic>=2.8
+Requires-Dist: pydantic-settings>=2.4
+Requires-Dist: jinja2>=3.1
+Requires-Dist: google-adk
+Requires-Dist: mcp[cli]
+Requires-Dist: google-cloud-speech>=2.21.0
+Requires-Dist: google-cloud-texttospeech>=2.16.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.2; extra == "dev"
+Provides-Extra: hf
+Requires-Dist: transformers>=4.52; extra == "hf"
+Requires-Dist: pillow>=10.4; extra == "hf"
+Requires-Dist: accelerate>=1.1; extra == "hf"
+Requires-Dist: sentencepiece>=0.2; extra == "hf"
+
+# Cure-Quest
+
+**An AI-powered multi-agent healthcare platform** that provides personalized chronic care management through intelligent conversational AI, real-time medication safety analysis, and transparent human-in-the-loop doctor handoffs.
+# **Cloud run api end point for testing**:    
+https://cure-quest-api-315569715049.us-central1.run.app
+
+## Demo Story — Shreesha's Care Journey
+
+Shreesha is a 22-year-old patient managing two chronic conditions simultaneously:
+
+- **Atopic Eczema** (moderate-severe) — recurring flares on forearms and neck, managed with topical Clobetasol Propionate
+- **Focal Epilepsy** — diagnosed at age 19, currently controlled with Levetiracetam 500mg twice daily
+
+The platform demonstrates how Cure-Quest coordinates care across multiple dimensions:
+
+1. **Voice/Chat AI** — Shreesha asks about drug interactions between his corticosteroid cream and anti-epileptic medication
+2. **Document Upload** — He uploads prescription scans that are AI-classified (MedSigLIP) and routed to organized Google Drive folders
+3. **HITL Review** — The AI generates a comprehensive patient report with medication durations, condition analysis, and recommended actions for his neurologist
+4. **Medication Reminders** — He sets daily reminder times for both medications
+5. **Gmail Integration** — Care summaries are emailed directly to his doctor
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   React Frontend                    │
+│  Login → Dashboard → Care Maze → Meds → HITL        │
+│  Voice Assistant │ Chat Assistant │ File Upload     │
+└──────────────────────┬──────────────────────────────┘
+                       │ REST API
+┌──────────────────────┴──────────────────────────────┐
+│                  FastAPI Backend                     │
+│                                                      │ 
+│  ┌─────────────┐  ┌────────────┐  ┌──────────────┐   │
+│  │ Orchestrator │──│ Intake     │  │ Formulary    │  │
+│  │              │  │ Agent      │  │ Agent        │  │
+│  │   routes &   │  ├────────────┤  ├──────────────┤  │
+│  │   delegates  │  │ Comms      │  │ Diet Agent   │  │
+│  │              │  │ Agent      │  ├──────────────┤  │
+│  │              │  ├────────────┤  │ Document     │  │
+│  │              │  │ HITL Agent │  │ Agent        │  │
+│  └──────┬───────┘  └────────────┘  └──────────────┘  │
+│         │                                            │
+│  ┌──────┴──────────────────────────────────────────┐ │
+│  │              Integration Agent                  │ │
+│  │  Drive │ Calendar │ Gmail │ Speech │ BigQuery   │ │
+│  │  OpenFDA │ Pharmacy │ MedSigLIP │ MedGemma      │ │
+│  └──────┬──────────────────────────────────────────┘ │
+└─────────┼────────────────────────────────────────────┘
+          │
+    ┌─────┴──────┐      ┌────────────┐
+    │  AlloyDB   │      │ Google     │
+    │ (EHR Data) │      │ Workspace  │
+    └────────────┘      │ Drive/Cal/ │
+                        │ Gmail      │
+                        └────────────┘
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 19, Vite, Tailwind CSS 4, Motion (Framer), Lucide Icons |
+| **Backend** | Python 3.12+, FastAPI, SQLAlchemy 2.0, Uvicorn |
+| **AI Models** | Gemini 3.1 Flash (conversation), MedGemma (clinical), MedSigLIP (vision) |
+| **Database** | Google Cloud AlloyDB (PostgreSQL-compatible) |
+| **Google APIs** | Drive, Calendar, Gmail, Speech-to-Text, Text-to-Speech, Maps |
+| **Integrations** | Asana (ticketing), OpenFDA (drug labels), BigQuery (analytics) |
+| **Design System** | "Digital Sanctuary" — Sage/Terracotta/Sand palette, glassmorphism, organic editorialism |
+
+### Documentation
+
+- [Architecture and Design](docs/ARCHITECTURE_AND_DESIGN.md)
+- [Connection Architecture](docs/CONNECTION_ARCHITECTURE.md)
+- [Wiring Checklist](docs/WIRING_CHECKLIST.md)
+- [Cloud Run Deployment](docs/CLOUD_RUN_DEPLOYMENT.md)
+- [Design System Specification](DESIGN.md)
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.12+
+- Node.js 18+
+- Google Cloud project with APIs enabled (Drive, Calendar, Gmail, Speech, Maps)
+- AlloyDB instance (or use SQLite for local dev)
+
+### 1. Backend Setup
+
+```powershell
+# Create virtual environment
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -e .[dev]
+
+# Copy and configure environment
+Copy-Item .env.example .env
+# Edit .env with your API keys and database URL
+```
+
+### 2. Database Setup
+
+```powershell
+# If using AlloyDB Auth Proxy:
+python scripts/print_alloydb_proxy_command.py
+# Start the proxy in a separate terminal, then:
+
+# Seed the demo patient
+python scripts/seed_shreesha.py
+
+# Setup vector storage (optional, for medical memory)
+python scripts/setup_alloydb_vector.py
+```
+
+### 3. Frontend Setup
+
+```powershell
+cd frontend
+npm install
+
+# Copy and configure environment
+Copy-Item .env.example .env
+# Set VITE_GOOGLE_CLIENT_ID for Google Sign-In
+
+npm run dev
+```
+
+### 4. Run the API
+
+```powershell
+uvicorn cure_quest.app:app --reload
+```
+
+Visit `http://localhost:3000` for the UI, or `http://localhost:8000/docs` for the API docs.
+
+### Cloud Run
+
+The backend API is prepared for Cloud Run deployment with:
+
+- `Dockerfile`
+- `.dockerignore`
+- `cloudbuild.yaml`
+
+See `docs/CLOUD_RUN_DEPLOYMENT.md` for the exact build, deploy, env var, and frontend wiring steps.
+
+---
+
+## Demo Walkthrough
+
+1. **Login** — Click "Sign in with Google" (or "Skip" for dev mode). Google OAuth connects Drive, Calendar, and Gmail in one step.
+2. **Dashboard** — See Shreesha's care pulse: Eczema + Epilepsy conditions, daily routines from Asana, model choreography.
+3. **Care Maze** — Ask questions like "Can I take ibuprofen with my epilepsy medication?" and get AI-powered responses with pharmacy search.
+4. **Medications** — Upload prescription images (drag & drop). AI classifies them via MedSigLIP and routes to organized Drive folders. Check drug alternatives against existing conditions.
+5. **HITL Review** — Generate a comprehensive AI comprehension report. See medication durations, condition interactions, and recommended clinical actions. Set medication reminders.
+6. **Voice** — Hold the microphone FAB and ask a health question. Google STT transcribes, Gemini responds, Google TTS speaks the answer back.
+7. **History** — Review all escalation cases, prescription scans, and notification history.
+
+---
+
+## API Reference
+
+### Patient & Auth
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/auth/google` | Exchange Google OAuth code for tokens |
+| `GET` | `/auth/google/status/{patient_id}` | Check connected Google services |
+| `POST` | `/patient/intake` | Register a new patient |
+| `POST` | `/patient/reminders` | Save a medication reminder |
+| `GET` | `/patient/{patient_id}/reminders` | List saved reminders |
+
+### Orchestration
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/orchestration/check-in/{patient_id}` | Daily check-in with routine tasks |
+| `POST` | `/orchestration/hitl-report` | Generate HITL doctor report |
+| `POST` | `/orchestration/hitl-comprehension` | AI-powered patient comprehension |
+| `POST` | `/orchestration/diet-support` | Medication-aware diet guidance |
+| `POST` | `/orchestration/voice-route` | Voice conversation pipeline |
+| `GET` | `/orchestration/manifest/{patient_id}` | Agent & model assignment manifest |
+
+### Documents & Medical
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/documents/upload-file` | Upload document (multipart) |
+| `POST` | `/drug/label` | OpenFDA drug label lookup |
+| `POST` | `/patient/check-alternatives` | Check medication alternatives |
+| `POST` | `/medical-models/medgemma` | Run MedGemma inference |
+
+### Google Workspace
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/calendar/events` | Create calendar events |
+| `GET` | `/gmail/{patient_id}/health-emails` | List health-related emails |
+| `POST` | `/gmail/send-care-summary` | Email care summary to doctor |
+
+---
+
+## Project Layout
+
+```
+frontend/                React UI (Vite + Tailwind)
+  src/
+    screens/             Dashboard, CareMaze, MedicationHub, HITL, History, Login
+    components/          Layout, VoiceAssistant, ChatAssistant, States, UI primitives
+    hooks/               useWorkspace data hook
+    lib/                 API client functions
+
+src/cure_quest/
+  api/                   FastAPI routes and Pydantic models
+  agents/                Domain agents (Orchestrator, HITL, Communications, etc.)
+  adapters/              Google APIs (Drive, Calendar, Gmail, Speech), Asana, OpenFDA
+  db/                    SQLAlchemy models and session management
+  services/              Brain service, model routing, image classification
+  mcp/                   Model Context Protocol server
+  adk/                   Google ADK agent definition
+
+scripts/                 Setup and seed utilities
+tests/                   Unit tests
+tests/integration/       Integration smoke tests (DB, Drive, Calendar, MCP, etc.)
+docs/                    Architecture documentation
+```
+
+---
+
+## Environment Variables
+
+See `.env.example` for the full list. Key variables:
+
+| Variable | Description |
+|----------|-------------|
+| `GOOGLE_API_KEY` | Gemini API key for AI generation |
+| `GOOGLE_OAUTH_CLIENT_ID` | Web OAuth client ID (for Sign in with Google) |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | Web OAuth client secret |
+| `DATABASE_URL` | PostgreSQL/AlloyDB connection string |
+| `ASANA_ACCESS_TOKEN` | Asana API token for ticketing |
+| `GOOGLE_DRIVE_FOLDER_ID` | Root Drive folder for document uploads |
+| `OPENFDA_API_KEY` | OpenFDA drug label API key |
+| `GOOGLE_MAPS_API_KEY` | Places API for pharmacy search |
+
+---
+
+## License
+
+Built for the Google Cloud Hackathon. All rights reserved.
