@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { Layout, type TabId } from './components/Layout';
-import { DashboardScreen } from './screens/DashboardScreen';
-import { CareMazeScreen } from './screens/CareMazeScreen';
-import { MedicationHubScreen } from './screens/MedicationHubScreen';
-import { HistoryScreen } from './screens/HistoryScreen';
-import { HITLScreen } from './screens/HITLScreen';
-import { LoginScreen } from './screens/LoginScreen';
-import { AboutScreen } from './screens/AboutScreen';
+import { Layout, type TabId } from './patient/components/Layout';
+import { DashboardScreen } from './patient/screens/DashboardScreen';
+import { CareMazeScreen } from './patient/screens/CareMazeScreen';
+import { MedicationHubScreen } from './patient/screens/MedicationHubScreen';
+import { HistoryScreen } from './patient/screens/HistoryScreen';
+import { HITLScreen } from './patient/screens/HITLScreen';
+import { LoginScreen } from './patient/screens/LoginScreen';
+import { AboutScreen } from './patient/screens/AboutScreen';
 
-import { Profile } from './screens/Profile';
-import { VoiceAssistant } from './components/VoiceAssistant';
-import { useWorkspace } from './hooks/useWorkspace';
-import { DoctorWorkspaceScreen } from './screens/DoctorWorkspaceScreen';
+import { Profile } from './patient/screens/Profile';
+import { VoiceAssistant } from './patient/components/VoiceAssistant';
+import { useWorkspace } from './patient/hooks/useWorkspace';
+import { DoctorWorkspaceScreen } from './doctor/screens/DoctorWorkspaceScreen';
+import { DoctorLayout } from './doctor/components/DoctorLayout';
+import MedicalNotebookScreen from './doctor/screens/MedicalNotebookScreen';
+import X2CTViewerScreen from './doctor/screens/X2CTViewerScreen';
 
 export default function App() {
   const [loggedInPatientId, setLoggedInPatientId] = useState<number | null>(() => {
@@ -37,10 +40,51 @@ export default function App() {
   }
 
   if (role === 'doctor') {
-    return <DoctorWorkspaceScreen patientId={loggedInPatientId} onRoleChange={() => setRole('patient')} />;
+    return <DoctorPortal patientId={loggedInPatientId} onRoleChange={() => setRole('patient')} onLogout={handleLogout} />;
   }
 
   return <AuthenticatedApp patientId={loggedInPatientId} onRoleChange={() => setRole('doctor')} onLogout={handleLogout} />;
+}
+
+function DoctorPortal({
+  patientId,
+  onRoleChange,
+  onLogout,
+}: {
+  patientId: number;
+  onRoleChange: () => void;
+  onLogout: () => void;
+}) {
+  const [activeTab, setActiveTab] = useState<'workspace' | 'notebook' | 'imaging'>('workspace');
+
+  const renderScreen = () => {
+    switch (activeTab) {
+      case 'workspace':
+        return <DoctorWorkspaceScreen patientId={patientId} onRoleChange={onRoleChange} />;
+      case 'notebook':
+        return <MedicalNotebookScreen />;
+      case 'imaging':
+        return <X2CTViewerScreen />;
+      default:
+        return <DoctorWorkspaceScreen patientId={patientId} onRoleChange={onRoleChange} />;
+    }
+  };
+
+  return (
+    <DoctorLayout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      doctorName="Dr. Shaun Murphy"
+      onRoleChange={onRoleChange}
+      onLogout={onLogout}
+    >
+      <AnimatePresence mode="wait">
+        <div key={activeTab} className="min-h-full min-w-0 w-full">
+          {renderScreen()}
+        </div>
+      </AnimatePresence>
+    </DoctorLayout>
+  );
 }
 
 function AuthenticatedApp({ 
