@@ -4,6 +4,7 @@ import { Layout, type TabId } from './patient/components/Layout';
 import { DashboardScreen } from './patient/screens/DashboardScreen';
 import { CareMazeScreen } from './patient/screens/CareMazeScreen';
 import { MedicationHubScreen } from './patient/screens/MedicationHubScreen';
+import { FinancialAdvocateScreen } from './patient/screens/FinancialAdvocateScreen';
 import { HistoryScreen } from './patient/screens/HistoryScreen';
 import { HITLScreen } from './patient/screens/HITLScreen';
 import { LoginScreen } from './patient/screens/LoginScreen';
@@ -107,7 +108,8 @@ function AuthenticatedApp({
         return <CareMazeScreen workspace={workspace} loading={loading} onRefresh={refresh} patientId={patientId} />;
       case 'medications':
         return <MedicationHubScreen workspace={workspace} loading={loading} onRefresh={refresh} patientId={patientId} />;
-
+      case 'financial-advocate':
+        return <FinancialAdvocateScreen workspace={workspace} loading={loading} error={error} onRefresh={refresh} patientId={patientId} />;
       case 'hitl':
         return <HITLScreen workspace={workspace} loading={loading} onRefresh={refresh} patientId={patientId} />;
       case 'history':

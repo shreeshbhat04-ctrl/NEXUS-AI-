@@ -1,0 +1,126 @@
+{
+  "_comment_purpose": "Sample insurance policy chunks fixture for testing the policy-citation retrieval endpoint. Each chunk represents a text block extracted from a PDF with its bounding-box coordinates.",
+  "_comment_structure": "Array of chunk objects. Each: chunk_id, page (1-indexed), bbox {x, y, w, h} in 72-DPI PDF points, text, section_title, source_doc_id.",
+  "_comment_bbox_units": "Bounding boxes use the PDF coordinate system at 72 DPI. An 8.5×11 inch page = 612×792 points. Origin (0,0) is bottom-left. x/y = top-left corner of the text block, w/h = width/height.",
+  "_comment_sections": "Chunks cover four key policy sections: Deductible Terms, Copay Schedule, Excluded Services, Coverage Limits — these are the sections most frequently cited during bill audits.",
+  "_comment_integration": "Load in tests via: json.load(open('tests/fixtures/policies/sample_policy_chunks.json'))['chunks']. Insert into 'policy_chunks' collection. The text index on the collection enables $text queries against chunk text.",
+
+  "source_doc_id": "POLICY-HMO-2026-SAMPLE",
+  "chunks": [
+    {
+      "_comment": "Deductible Terms — individual deductible amount and calendar-year reset rule",
+      "chunk_id": "POLICY-HMO-2026-SAMPLE_p3_001",
+      "page": 3,
+      "bbox": {
+        "_comment": "Top of page 3, full-width paragraph (72 DPI: 1 inch margins → x=72, w=468)",
+        "x": 72.0,
+        "y": 700.0,
+        "w": 468.0,
+        "h": 58.0
+      },
+      "text": "Section 4.1 — Individual Deductible. The annual deductible for in-network services is $1,500 per covered individual. The deductible resets on January 1 of each calendar year. Amounts paid toward the deductible for out-of-network services do not apply to the in-network deductible.",
+      "section_title": "Deductible Terms"
+    },
+    {
+      "_comment": "Deductible Terms — family deductible and embedded individual cap",
+      "chunk_id": "POLICY-HMO-2026-SAMPLE_p3_002",
+      "page": 3,
+      "bbox": {
+        "x": 72.0,
+        "y": 630.0,
+        "w": 468.0,
+        "h": 45.0
+      },
+      "text": "Section 4.2 — Family Deductible. The family deductible is $3,000. Once any single family member meets $1,500 in covered expenses, that individual's deductible is satisfied regardless of the family total.",
+      "section_title": "Deductible Terms"
+    },
+    {
+      "_comment": "Copay Schedule — office visit copays by tier",
+      "chunk_id": "POLICY-HMO-2026-SAMPLE_p5_001",
+      "page": 5,
+      "bbox": {
+        "x": 72.0,
+        "y": 680.0,
+        "w": 468.0,
+        "h": 72.0
+      },
+      "text": "Section 6.1 — Office Visit Copayments. Primary care office visits: $25 copay. Specialist office visits: $50 copay. Urgent care facility visits: $75 copay. Copayments are due at the time of service and do not apply toward the annual deductible.",
+      "section_title": "Copay Schedule"
+    },
+    {
+      "_comment": "Copay Schedule — emergency room copay and waiver rule",
+      "chunk_id": "POLICY-HMO-2026-SAMPLE_p5_002",
+      "page": 5,
+      "bbox": {
+        "x": 72.0,
+        "y": 595.0,
+        "w": 468.0,
+        "h": 50.0
+      },
+      "text": "Section 6.2 — Emergency Room Copayment. Emergency room visits: $250 copay. The copayment is waived if the visit results in an inpatient admission within 24 hours of the ER visit.",
+      "section_title": "Copay Schedule"
+    },
+    {
+      "_comment": "Excluded Services — cosmetic and experimental procedures",
+      "chunk_id": "POLICY-HMO-2026-SAMPLE_p12_001",
+      "page": 12,
+      "bbox": {
+        "x": 72.0,
+        "y": 690.0,
+        "w": 468.0,
+        "h": 65.0
+      },
+      "text": "Section 10.1 — Excluded Services. The following services are not covered under this plan: (a) cosmetic surgery unless medically necessary for reconstruction after injury; (b) experimental or investigational treatments not approved by the FDA; (c) services rendered outside the United States except for emergency stabilization.",
+      "section_title": "Excluded Services"
+    },
+    {
+      "_comment": "Excluded Services — dental and vision carve-outs",
+      "chunk_id": "POLICY-HMO-2026-SAMPLE_p12_002",
+      "page": 12,
+      "bbox": {
+        "x": 72.0,
+        "y": 610.0,
+        "w": 468.0,
+        "h": 48.0
+      },
+      "text": "Section 10.2 — Dental and Vision Exclusions. Routine dental care, orthodontia, and routine vision exams (including corrective lenses) are excluded. These services may be available under separate supplemental plans.",
+      "section_title": "Excluded Services"
+    },
+    {
+      "_comment": "Coverage Limits — annual out-of-pocket maximum",
+      "chunk_id": "POLICY-HMO-2026-SAMPLE_p8_001",
+      "page": 8,
+      "bbox": {
+        "x": 72.0,
+        "y": 710.0,
+        "w": 468.0,
+        "h": 55.0
+      },
+      "text": "Section 7.1 — Out-of-Pocket Maximum. The annual out-of-pocket maximum for in-network services is $6,500 per individual and $13,000 per family. Once the out-of-pocket maximum is reached, the plan pays 100% of covered in-network services for the remainder of the calendar year.",
+      "section_title": "Coverage Limits"
+    },
+    {
+      "_comment": "Coverage Limits — coinsurance after deductible",
+      "chunk_id": "POLICY-HMO-2026-SAMPLE_p8_002",
+      "page": 8,
+      "bbox": {
+        "x": 72.0,
+        "y": 640.0,
+        "w": 468.0,
+        "h": 50.0
+      },
+      "text": "Section 7.2 — Coinsurance. After the deductible is met, the plan pays 80% of allowed charges for in-network services and the member pays 20% coinsurance until the out-of-pocket maximum is reached. For out-of-network services, the plan pays 60% and the member pays 40%.",
+      "section_title": "Coverage Limits"
+    }
+  ],
+
+  "_comment_test_assertions": [
+    "There should be exactly 8 chunks across 4 section titles",
+    "All bbox coordinates should be within a standard US letter page: x in [0,612], y in [0,792]",
+    "x + w should not exceed 612 (page width); y values should be positive",
+    "Each chunk_id should be unique and follow the pattern: {source_doc_id}_p{page}_{seq}",
+    "source_doc_id should be the same for all chunks in this fixture",
+    "Text search for 'deductible' should match chunks on pages 3 and 8",
+    "Text search for 'cosmetic' should match chunk on page 12"
+  ]
+}

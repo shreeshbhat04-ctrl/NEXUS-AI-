@@ -9,6 +9,8 @@ from starlette.responses import JSONResponse
 from nexus_ai.api.routes import router
 from nexus_ai.config import get_settings
 from nexus_ai.db.bootstrap import init_database
+from nexus_ai.patient_finance.api_routes import finance_router
+from nexus_ai.patient_finance.mongodb import close_mongodb, init_mongodb
 
 
 @asynccontextmanager
@@ -19,7 +21,11 @@ async def lifespan(_: FastAPI):
         os.environ["GEMINI_API_KEY"] = settings.google_api_key
 
     init_database()
-    yield
+    await init_mongodb()
+    try:
+        yield
+    finally:
+        await close_mongodb()
 
 
 class ApiKeyMiddleware(BaseHTTPMiddleware):
@@ -45,3 +51,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(router)
+app.include_router(finance_router)

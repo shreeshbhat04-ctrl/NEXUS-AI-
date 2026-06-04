@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Grid2X2, 
   Map, 
+  Landmark,
   Pill, 
   History, 
   Stethoscope, 
@@ -33,7 +34,7 @@ import {
   type CartItem 
 } from '../../shared/lib/api';
 
-type TabId = 'dashboard' | 'care-maze' | 'medications' | 'hitl' | 'history' | 'profile' | 'about';
+type TabId = 'dashboard' | 'care-maze' | 'medications' | 'financial-advocate' | 'hitl' | 'history' | 'profile' | 'about';
 
 interface LayoutProps {
   patientId: number;
@@ -82,6 +83,7 @@ export const Layout: React.FC<LayoutProps> = ({
     { id: 'dashboard', icon: Grid2X2, label: 'Dashboard' },
     { id: 'care-maze', icon: Map, label: 'Care Maze' },
     { id: 'medications', icon: Pill, label: 'Meds' },
+    { id: 'financial-advocate', icon: Landmark, label: 'Finance' },
     { id: 'hitl', icon: Stethoscope, label: 'Doctors' },
     { id: 'history', icon: History, label: 'History' },
     { id: 'profile', icon: User, label: 'Profile' },

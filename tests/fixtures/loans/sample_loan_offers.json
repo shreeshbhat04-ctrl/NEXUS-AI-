@@ -1,0 +1,71 @@
+{
+  "_comment_purpose": "Sample loan/financing offers fixture for testing the loan-ranking pipeline. Offers are intentionally varied to exercise sorting, filtering, and edge-case logic.",
+  "_comment_structure": "Top-level array of offer objects. Each: provider_name, apr, tenure_months, max_amount, min_amount, approval_probability (0-1), provider_reliability (0-1).",
+  "_comment_ranking": "The ranking algorithm should consider: lower APR > higher approval_probability > higher provider_reliability. Hospital payment plan (0% APR) should typically rank #1.",
+  "_comment_integration": "Load in tests via: json.load(open('tests/fixtures/loans/sample_loan_offers.json'))['offers']. Insert into 'loan_offers' collection with patient_id = 'PAT-TEST-001'.",
+
+  "patient_id": "PAT-TEST-001",
+  "computed_at": "2026-05-20T10:30:00Z",
+  "offers": [
+    {
+      "_comment": "Hospital payment plan — 0% APR, high reliability, but lower max amount and moderate approval odds",
+      "provider_name": "Citywide General Hospital Payment Plan",
+      "apr": 0.0,
+      "tenure_months": 12,
+      "max_amount": 5000.00,
+      "min_amount": 500.00,
+      "approval_probability": 0.85,
+      "provider_reliability": 0.95
+    },
+    {
+      "_comment": "Fintech medical lender — competitive APR, high approval, newer provider so lower reliability score",
+      "provider_name": "MediFund Express",
+      "apr": 5.99,
+      "tenure_months": 24,
+      "max_amount": 25000.00,
+      "min_amount": 1000.00,
+      "approval_probability": 0.78,
+      "provider_reliability": 0.72
+    },
+    {
+      "_comment": "Personal loan from traditional bank — moderate APR, high reliability, stricter approval",
+      "provider_name": "National Health Credit Union",
+      "apr": 8.49,
+      "tenure_months": 36,
+      "max_amount": 50000.00,
+      "min_amount": 2000.00,
+      "approval_probability": 0.55,
+      "provider_reliability": 0.92
+    },
+    {
+      "_comment": "Specialized medical financing — mid-range APR, long tenure, decent approval",
+      "provider_name": "CareCredit Plus",
+      "apr": 14.90,
+      "tenure_months": 48,
+      "max_amount": 30000.00,
+      "min_amount": 500.00,
+      "approval_probability": 0.90,
+      "provider_reliability": 0.88
+    },
+    {
+      "_comment": "Medical credit card — highest APR (24.99%), easy approval, useful as a worst-case fallback option",
+      "provider_name": "HealthCard Platinum",
+      "apr": 24.99,
+      "tenure_months": 60,
+      "max_amount": 15000.00,
+      "min_amount": 250.00,
+      "approval_probability": 0.95,
+      "provider_reliability": 0.80
+    }
+  ],
+
+  "_comment_test_assertions": [
+    "There should be exactly 5 offers",
+    "APRs span from 0.0 to 24.99 — tests should verify sorting by APR ascending",
+    "Hospital plan (apr=0.0) should rank first under most ranking strategies",
+    "HealthCard (apr=24.99) should rank last despite highest approval probability",
+    "All approval_probability values are between 0.0 and 1.0 inclusive",
+    "All provider_reliability values are between 0.0 and 1.0 inclusive",
+    "min_amount < max_amount for every offer"
+  ]
+}

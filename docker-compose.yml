@@ -1,0 +1,211 @@
+# =============================================================================
+# Docker Compose — CureQuest Local Development Stack
+# =============================================================================
+#
+# PURPOSE
+# -------
+# Brings up every service needed for local development of the patient financial
+# advocate feature alongside the existing CureQuest backend and frontend.
+#
+# SERVICES
+# --------
+#   cure-quest-api   — Python 3.13 FastAPI backend  (existing Dockerfile)
+#   cure-quest-web   — Vite / React frontend        (existing frontend.Dockerfile)
+#   mongodb          — MongoDB 7 for finance data + GridFS bill storage
+#   arize-phoenix    — Arize Phoenix for LLM tracing / observability
+#
+# USAGE
+#   docker compose up -d            # start all services
+#   docker compose logs -f api      # tail backend logs
+#   docker compose down -v          # stop & remove volumes (fresh start)
+#
+# NETWORK
+#   All services join a shared bridge network ``curequest-net`` so they can
+#   reach each other by service name (e.g. ``mongodb://mongodb:27017``).
+#
+# VOLUMES
+#   mongodb_data  — persists MongoDB data between restarts
+#   phoenix_data  — persists Arize Phoenix trace storage between restarts
+#
+# ENVIRONMENT
+#   The backend reads its config from a ``.env`` file in the project root.
+#   Make sure the following variables are set (see .env.example):
+#     MONGO_URI=mongodb://mongodb:27017
+#     PHOENIX_COLLECTOR_ENDPOINT=http://arize-phoenix:6006/v1/traces
+#     DATABASE_URL=<existing PostgreSQL connection string>
+#     ... (all other existing env vars)
+#
+# INITIALIZATION
+#   The ``mongo-init`` directory is bind-mounted into the MongoDB container at
+#   ``/docker-entrypoint-initdb.d/``.  Scripts in that directory run
+#   automatically on first container start (empty data volume).
+# =============================================================================
+
+# version: "3.9"
+# ── Compose Specification no longer requires a version key.
+# ── If your Docker Compose is older than v2, uncomment the line above.
+
+# services:
+#
+#   # -----------------------------------------------------------------------
+#   # MongoDB 7
+#   # -----------------------------------------------------------------------
+#   # Image:       mongo:7
+#   # Port:        27017 → host 27017
+#   # Volume:      mongodb_data → /data/db  (persistent storage)
+#   # Init script: ./mongo-init/ → /docker-entrypoint-initdb.d/ (read-only)
+#   #
+#   # Environment variables (set in the service block):
+#   #   MONGO_INITDB_DATABASE: curequest_finance
+#   #
+#   # Health check:
+#   #   Use ``mongosh --eval "db.adminCommand('ping')"`` with interval 10s,
+#   #   timeout 5s, retries 5.
+#   #
+#   # Network: curequest-net
+#   # -----------------------------------------------------------------------
+#   mongodb:
+#     # image: mongo:7
+#     # container_name: curequest-mongodb
+#     # ports:
+#     #   - "27017:27017"
+#     # volumes:
+#     #   - mongodb_data:/data/db
+#     #   - ./mongo-init:/docker-entrypoint-initdb.d:ro
+#     # environment:
+#     #   MONGO_INITDB_DATABASE: curequest_finance
+#     # healthcheck:
+#     #   test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+#     #   interval: 10s
+#     #   timeout: 5s
+#     #   retries: 5
+#     # networks:
+#     #   - curequest-net
+#
+#
+#   # -----------------------------------------------------------------------
+#   # Arize Phoenix — LLM Observability
+#   # -----------------------------------------------------------------------
+#   # Image:   arizephoenix/phoenix:latest
+#   # Port:    6006 → host 6006  (Phoenix UI + OTLP collector)
+#   # Volume:  phoenix_data → /data  (trace storage persistence)
+#   #
+#   # Phoenix accepts OpenTelemetry traces on port 6006 at /v1/traces.
+#   # The backend sends spans here via the OTLPSpanExporter.
+#   #
+#   # Environment variables (optional):
+#   #   PHOENIX_PORT: 6006
+#   #   PHOENIX_WORKING_DIR: /data
+#   #
+#   # Health check:
+#   #   curl -f http://localhost:6006/healthz || exit 1
+#   #
+#   # Network: curequest-net
+#   # -----------------------------------------------------------------------
+#   arize-phoenix:
+#     # image: arizephoenix/phoenix:latest
+#     # container_name: curequest-phoenix
+#     # ports:
+#     #   - "6006:6006"
+#     # volumes:
+#     #   - phoenix_data:/data
+#     # environment:
+#     #   PHOENIX_PORT: "6006"
+#     #   PHOENIX_WORKING_DIR: /data
+#     # healthcheck:
+#     #   test: ["CMD", "curl", "-f", "http://localhost:6006/healthz"]
+#     #   interval: 15s
+#     #   timeout: 5s
+#     #   retries: 3
+#     # networks:
+#     #   - curequest-net
+#
+#
+#   # -----------------------------------------------------------------------
+#   # CureQuest API (Backend)
+#   # -----------------------------------------------------------------------
+#   # Build:       ./Dockerfile  (existing — Python 3.13 image)
+#   # Port:        8000 → host 8000
+#   # Depends on:  mongodb (healthy), arize-phoenix (started)
+#   # Env file:    .env  (project root)
+#   #
+#   # Key environment overrides for Docker networking:
+#   #   MONGO_URI:                   mongodb://mongodb:27017
+#   #   PHOENIX_COLLECTOR_ENDPOINT:  http://arize-phoenix:6006/v1/traces
+#   #   DATABASE_URL:                <keep existing PG connection string>
+#   #
+#   # The backend must wait for MongoDB to be healthy before starting.
+#   # Use ``depends_on.mongodb.condition: service_healthy``.
+#   #
+#   # Network: curequest-net
+#   # -----------------------------------------------------------------------
+#   cure-quest-api:
+#     # build:
+#     #   context: .
+#     #   dockerfile: Dockerfile
+#     # container_name: curequest-api
+#     # ports:
+#     #   - "8000:8000"
+#     # env_file:
+#     #   - .env
+#     # environment:
+#     #   MONGO_URI: mongodb://mongodb:27017
+#     #   PHOENIX_COLLECTOR_ENDPOINT: http://arize-phoenix:6006/v1/traces
+#     # depends_on:
+#     #   mongodb:
+#     #     condition: service_healthy
+#     #   arize-phoenix:
+#     #     condition: service_started
+#     # networks:
+#     #   - curequest-net
+#
+#
+#   # -----------------------------------------------------------------------
+#   # CureQuest Web (Frontend)
+#   # -----------------------------------------------------------------------
+#   # Build:       ./frontend.Dockerfile  (existing — Vite / React)
+#   # Port:        3000 → host 3000
+#   # Depends on:  cure-quest-api (started)
+#   #
+#   # Environment:
+#   #   VITE_API_BASE_URL: http://cure-quest-api:8000
+#   #     ↑ This is the *container-internal* URL used during SSR/proxy.
+#   #       For client-side calls the browser hits localhost:8000 directly,
+#   #       so the Vite dev proxy or nginx conf must rewrite accordingly.
+#   #
+#   # Network: curequest-net
+#   # -----------------------------------------------------------------------
+#   cure-quest-web:
+#     # build:
+#     #   context: .
+#     #   dockerfile: frontend.Dockerfile
+#     # container_name: curequest-web
+#     # ports:
+#     #   - "3000:3000"
+#     # environment:
+#     #   VITE_API_BASE_URL: http://cure-quest-api:8000
+#     # depends_on:
+#     #   - cure-quest-api
+#     # networks:
+#     #   - curequest-net
+
+
+# # ---------------------------------------------------------------------------
+# # Networks
+# # ---------------------------------------------------------------------------
+# networks:
+#   curequest-net:
+#     driver: bridge
+
+
+# # ---------------------------------------------------------------------------
+# # Volumes
+# # ---------------------------------------------------------------------------
+# # Named volumes keep data across ``docker compose down`` (without -v flag).
+# # To fully reset, run ``docker compose down -v``.
+# # ---------------------------------------------------------------------------
+# volumes:
+#   mongodb_data:
+#     driver: local
+#   phoenix_data:
+#     driver: local

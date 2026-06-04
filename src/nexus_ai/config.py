@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     bigquery_project_id: str | None = None
     bigquery_dataset_id: str = "nexus_ai"
     bigquery_table_id: str = "integration_events"
+    mongodb_uri: str = "mongodb://127.0.0.1:27017"
+    mongodb_database: str = "nexus_ai_finance"
+    arize_phoenix_url: str | None = None
+    arize_phoenix_project: str = "cure-quest-patient-finance"
+    arize_api_key: str | None = None
+    arize_space_key: str | None = None
 
     google_maps_api_key: str | None = None
     use_synthetic_maps: bool = False

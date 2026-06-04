@@ -1358,3 +1358,234 @@ export async function checkoutCartItem(patientId: number, itemId: number): Promi
   });
 }
 
+export type FinanceWorkflowStep =
+  | 'idle'
+  | 'uploading'
+  | 'parsing'
+  | 'auditing'
+  | 'gap_calculating'
+  | 'loan_discovery'
+  | 'awaiting_consent'
+  | 'submitted';
+
+export interface FinanceBoundingBox {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  pageNumber: number;
+  width?: number;
+  height?: number;
+}
+
+export interface FinanceBillItem {
+  description: string;
+  code: string;
+  category: string;
+  quantity: number;
+  unit_price: string;
+  line_total: string;
+  bbox?: FinanceBoundingBox | null;
+}
+
+export interface FinanceAuditFlag {
+  id: string;
+  type: 'duplicate' | 'unknown_code' | 'pricing_outlier' | 'math_error' | 'verified';
+  severity: 'info' | 'warning' | 'error';
+  item_index: number;
+  reason: string;
+  suggested_action: string;
+  line_item_description: string;
+  billed_amount: string;
+  verified_amount?: string | null;
+  bbox?: FinanceBoundingBox | null;
+  policy_citation_ids: string[];
+}
+
+export interface FinanceAuditResult {
+  bill_id: string;
+  patient_id: string;
+  items: FinanceBillItem[];
+  total_billed: string;
+  total_flagged: string;
+  total_verified: string;
+  flags: FinanceAuditFlag[];
+  status: string;
+  summary?: string | null;
+  audit_timestamp: string;
+}
+
+export interface FinanceCoverageBreakdown {
+  covered_amount: string;
+  discounts: string;
+  deductible_remaining: string;
+  copay: string;
+  coinsurance_percent: number;
+  coinsurance_amount: string;
+  out_of_pocket_max: string;
+  out_of_pocket_spent: string;
+  is_oop_max_reached: boolean;
+}
+
+export interface FinanceGapResult {
+  bill_id: string;
+  patient_id: string;
+  total_billed: string;
+  insurance_coverage: string;
+  patient_responsibility: string;
+  breakdown: FinanceCoverageBreakdown;
+  status: string;
+  computed_at: string;
+}
+
+export interface FinanceLoanOffer {
+  id: string;
+  provider_name: string;
+  apr: number;
+  tenure_months: number;
+  min_amount: string;
+  max_amount: string;
+  emi: string;
+  total_payable: string;
+  approval_probability: number;
+  provider_reliability_score: number;
+  ranking_score: number;
+  is_top_pick: boolean;
+}
+
+export interface FinancePolicyCitation {
+  id: string;
+  section_title: string;
+  page_number: number;
+  excerpt: string;
+  relevance_tag: 'coverage' | 'exclusion' | 'limitation' | 'general';
+  related_audit_flag_ids: string[];
+  bbox?: FinanceBoundingBox | null;
+}
+
+export interface FinanceWorkflowEvent {
+  event: string;
+  step: FinanceWorkflowStep;
+  message: string;
+  data: Record<string, unknown>;
+  timestamp: string;
+}
+
+export interface FinanceWorkflowSnapshot {
+  session_id: string;
+  patient_id: string;
+  patient_name: string;
+  bill_id: string;
+  current_step: FinanceWorkflowStep;
+  status_message: string;
+  pdf_filename?: string | null;
+  pdf_url?: string | null;
+  audit_result?: FinanceAuditResult | null;
+  gap_result?: FinanceGapResult | null;
+  loan_offers: FinanceLoanOffer[];
+  policy_citations: FinancePolicyCitation[];
+  selected_offer_id?: string | null;
+  consent_status: 'pending' | 'granted' | 'denied';
+  application_id?: string | null;
+  updated_at: string;
+  events: FinanceWorkflowEvent[];
+}
+
+export interface FinanceUploadBillResponse {
+  bill_id: string;
+  session_id: string;
+  status: string;
+  summary: FinanceWorkflowSnapshot;
+}
+
+export interface FinanceSubmissionResponse {
+  submission_id: string;
+  reference_id: string;
+  provider_name: string;
+  requested_amount: string;
+  status: 'submitted' | 'failed';
+  created_at?: string;
+}
+
+export async function uploadFinanceBill(patientId: number, file: File): Promise<FinanceUploadBillResponse> {
+  const formData = new FormData();
+  formData.append('patient_id', String(patientId));
+  formData.append('file', file);
+
+  const response = await fetch(`${API_BASE_URL}/api/finance/upload-bill`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || 'Finance bill upload failed.');
+  }
+
+  return response.json() as Promise<FinanceUploadBillResponse>;
+}
+
+export async function fetchFinanceSummary(billId: string): Promise<FinanceWorkflowSnapshot> {
+  return request<FinanceWorkflowSnapshot>(`/api/finance/summary/${billId}`);
+}
+
+export async function fetchFinanceAudit(billId: string): Promise<FinanceAuditResult> {
+  return request<FinanceAuditResult>(`/api/finance/audit/${billId}`);
+}
+
+export async function fetchFinanceGap(billId: string): Promise<FinanceGapResult> {
+  return request<FinanceGapResult>(`/api/finance/gap/${billId}`);
+}
+
+export async function fetchFinanceLoans(billId: string): Promise<{ offers: FinanceLoanOffer[] }> {
+  return request<{ offers: FinanceLoanOffer[] }>(`/api/finance/loans/${billId}`);
+}
+
+export async function fetchFinancePolicyCitations(billId: string): Promise<{ citations: FinancePolicyCitation[] }> {
+  return request<{ citations: FinancePolicyCitation[] }>(`/api/finance/policy-citations/${billId}`);
+}
+
+export async function recordFinanceConsent(patientId: number, billId: string, offerId: string): Promise<{ consent_id: string }> {
+  return request<{ consent_id: string }>(`/api/finance/consent`, {
+    method: 'POST',
+    body: JSON.stringify({
+      patient_id: patientId,
+      bill_id: billId,
+      offer_id: offerId,
+    }),
+  });
+}
+
+export async function submitFinanceApplication(
+  patientId: number,
+  billId: string,
+  offerId: string,
+  consentId: string,
+): Promise<FinanceSubmissionResponse> {
+  return request<FinanceSubmissionResponse>(`/api/finance/submit`, {
+    method: 'POST',
+    body: JSON.stringify({
+      patient_id: patientId,
+      bill_id: billId,
+      offer_id: offerId,
+      consent_id: consentId,
+    }),
+  });
+}
+
+export function connectFinanceWorkflowStream(
+  sessionId: string,
+  onEvent: (event: FinanceWorkflowEvent) => void,
+  onError?: (error: Event) => void,
+): EventSource {
+  const source = new EventSource(`${API_BASE_URL}/api/finance/workflow-status/${sessionId}`);
+  source.onmessage = (message) => {
+    const payload = JSON.parse(message.data) as FinanceWorkflowEvent;
+    onEvent(payload);
+  };
+  if (onError) {
+    source.onerror = onError;
+  }
+  return source;
+}
+

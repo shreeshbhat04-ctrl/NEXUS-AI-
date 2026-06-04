@@ -1,0 +1,94 @@
+{
+  "_comment_purpose": "Sample itemized medical bill fixture for testing the bill-audit pipeline. Includes intentional duplicates and unknown codes so audit tests can verify detection logic.",
+  "_comment_structure": "Top-level: patient_id, provider_name, bill_date, items[], total. Each item has: description, code (CPT/HCPCS), category, qty, unit_price, line_total.",
+  "_comment_categories": "Categories based on realistic CPT groupings: E/M (Evaluation & Management), Lab, Imaging, Procedures.",
+  "_comment_duplicates": "Items at indexes 2 and 5 are INTENTIONAL DUPLICATES (same code 99214) — the audit should flag these.",
+  "_comment_unknown_code": "Item at index 6 uses code 'XXXXX' — an invalid/unknown CPT code the audit should flag.",
+  "_comment_integration": "Load this fixture in tests via: json.load(open('tests/fixtures/bills/sample_itemized_bill.json')). Insert into the 'bills' MongoDB collection with parsed_data set to this object.",
+
+  "patient_id": "PAT-TEST-001",
+  "provider_name": "Citywide General Hospital",
+  "bill_date": "2026-05-15",
+  "items": [
+    {
+      "_comment": "E/M — New patient office visit (legitimate)",
+      "description": "Office visit, new patient, level 3",
+      "code": "99203",
+      "category": "E/M",
+      "qty": 1,
+      "unit_price": 250.00,
+      "line_total": 250.00
+    },
+    {
+      "_comment": "Lab — Comprehensive metabolic panel (legitimate)",
+      "description": "Comprehensive metabolic panel",
+      "code": "80053",
+      "category": "Lab",
+      "qty": 1,
+      "unit_price": 120.00,
+      "line_total": 120.00
+    },
+    {
+      "_comment": "E/M — Established patient visit (DUPLICATE #1 of code 99214)",
+      "description": "Office visit, established patient, level 4",
+      "code": "99214",
+      "category": "E/M",
+      "qty": 1,
+      "unit_price": 195.00,
+      "line_total": 195.00
+    },
+    {
+      "_comment": "Imaging — Chest X-ray, 2 views (legitimate)",
+      "description": "Chest X-ray, 2 views",
+      "code": "71046",
+      "category": "Imaging",
+      "qty": 1,
+      "unit_price": 350.00,
+      "line_total": 350.00
+    },
+    {
+      "_comment": "Lab — Lipid panel (legitimate)",
+      "description": "Lipid panel",
+      "code": "80061",
+      "category": "Lab",
+      "qty": 1,
+      "unit_price": 85.00,
+      "line_total": 85.00
+    },
+    {
+      "_comment": "E/M — DUPLICATE #2 of code 99214 — audit should flag this as duplicate billing",
+      "description": "Office visit, established patient, level 4",
+      "code": "99214",
+      "category": "E/M",
+      "qty": 1,
+      "unit_price": 195.00,
+      "line_total": 195.00
+    },
+    {
+      "_comment": "UNKNOWN CODE — 'XXXXX' is not a valid CPT code; audit should flag as unrecognized",
+      "description": "Miscellaneous service charge",
+      "code": "XXXXX",
+      "category": "Procedures",
+      "qty": 1,
+      "unit_price": 475.00,
+      "line_total": 475.00
+    },
+    {
+      "_comment": "Procedures — IV infusion first hour (legitimate)",
+      "description": "IV infusion, first hour",
+      "code": "96365",
+      "category": "Procedures",
+      "qty": 1,
+      "unit_price": 310.00,
+      "line_total": 310.00
+    }
+  ],
+  "total": 1980.00,
+
+  "_comment_test_assertions": [
+    "Total should equal sum of all line_totals: 250 + 120 + 195 + 350 + 85 + 195 + 475 + 310 = 1980",
+    "Audit should flag items[2] and items[5] as duplicate charges (both code 99214)",
+    "Audit should flag items[6] with unknown/invalid CPT code 'XXXXX'",
+    "Audit should NOT flag items[0], [1], [3], [4], [7] — these are legitimate"
+  ]
+}
