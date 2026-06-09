@@ -76,3 +76,5 @@ agent/workflows/
 .gemini/
 GEMINI.md
 graphify-out/
+static/
+*.dcm
