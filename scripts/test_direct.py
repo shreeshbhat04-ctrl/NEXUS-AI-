@@ -3,9 +3,15 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from google.cloud.sql.connector import Connector, IPTypes
 import pg8000
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 async def test_mongo():
     print('Testing MongoDB...')
-    client = AsyncIOMotorClient('mongodb+srv://sreeshhb_db_user:30GwdxzGppQNmiwa@cluster0.j6oez1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', serverSelectionTimeoutMS=5000)
+    uri = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017')
+    client = AsyncIOMotorClient(uri, serverSelectionTimeoutMS=5000)
     try:
         await client.admin.command('ping')
         print('MongoDB Connected!')
