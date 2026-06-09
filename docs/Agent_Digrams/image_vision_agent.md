@@ -92,7 +92,7 @@ The core innovation is the **two-stage fallback** that eliminates the need for u
 | `ImageClassifierService` | `services/image_classifier.py` | Gemini-based PRESCRIPTION/SYMPTOM/OTHER classification |
 | `GeminiVisionService` | `services/gemini_vision.py` | Structured symptom/prescription analysis + diagnostic image gen |
 | `GoogleDriveAdapter` | `adapters/drive.py` | Hierarchical Drive folder creation + file upload |
-| `ModelRoutingService` | `services/model_routing.py` | Routes images through MedSigLIP → MedGemma pipeline |
+| `ModelRoutingService` | `services/model_routing.py` | Routes images through ADK visual intake → Gemini 3.1 Flash pipeline |
 
 ---
 

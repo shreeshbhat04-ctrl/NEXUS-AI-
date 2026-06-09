@@ -75,7 +75,6 @@ export const Layout: React.FC<LayoutProps> = ({
   // Custom manual item form state
   const [customItemName, setCustomItemName] = useState('');
   const [customItemType, setCustomItemType] = useState<'medicine' | 'ingredient'>('ingredient');
-  const [customItemUrl, setCustomItemUrl] = useState('');
   const [isAddingCustom, setIsAddingCustom] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -147,9 +146,8 @@ export const Layout: React.FC<LayoutProps> = ({
       setIsAddingCustom(true);
       setErrorMsg(null);
       const price = customItemType === 'ingredient' ? 8.50 : 15.00;
-      await addToCart(patientId, customItemName.trim(), customItemType, price, customItemUrl.trim() || undefined);
+      await addToCart(patientId, customItemName.trim(), customItemType, price, undefined);
       setCustomItemName('');
-      setCustomItemUrl('');
       await refreshCart();
       window.dispatchEvent(new CustomEvent('cart-updated'));
     } catch (err) {
@@ -587,13 +585,6 @@ export const Layout: React.FC<LayoutProps> = ({
                       <option value="medicine">Medicine</option>
                     </select>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="URL (optional, triggers subagent parse)"
-                    className="input-shell text-xs"
-                    value={customItemUrl}
-                    onChange={(e) => setCustomItemUrl(e.target.value)}
-                  />
                   <button
                     type="submit"
                     disabled={isAddingCustom || !customItemName.trim()}

@@ -1270,6 +1270,65 @@ export async function extractSafeIngredients(
   });
 }
 
+export async function* streamExtractSafeIngredients(
+  patientId: number,
+  url?: string,
+  imageFile?: File
+) {
+  let imageBase64: string | undefined;
+  if (imageFile) {
+    const buffer = await imageFile.arrayBuffer();
+    const base64String = btoa(
+      new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+    imageBase64 = base64String;
+  }
+  
+  const payload = {
+    patient_id: patientId,
+    url: url || null,
+    image_base64: imageBase64 || null
+  };
+  
+  const response = await fetch(`${API_BASE_URL}/diet/multiagent/extract-safe-ingredients-stream`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error('Streaming failed');
+  }
+
+  if (response.body) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            const parsed = JSON.parse(line);
+            if (parsed.type === 'ingredient') {
+              yield parsed.data;
+            }
+          } catch (e) {
+            console.error('Error parsing streaming line:', e);
+          }
+        }
+      }
+    }
+  }
+}
+
 export async function generateCulinaryRecipe(
   patientId: number,
   safeIngredients: string[],

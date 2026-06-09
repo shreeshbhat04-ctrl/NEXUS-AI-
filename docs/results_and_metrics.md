@@ -5,10 +5,10 @@
 
 ---
 
-## 1. Database Performance & Latency (AlloyDB)
+## 1. Database Performance & Latency (PostgreSQL)
 
-- The platform leverages AlloyDB for high-performance medical grounding.
-- Since real-time chat interference is needed for patients' urgency, AlloyDB offers just that. 
+- The platform leverages PostgreSQL for high-performance medical grounding.
+- Since real-time chat interference is needed for patients' urgency, PostgreSQL offers just that. 
 - Below are the benchmarks achieved during stress testing with 176,000+ clinical records.
 
 ### Query Latency on 176,000 Rows
@@ -16,10 +16,10 @@ The index-optimized search ensures sub-second response times even as the dataset
 
 ![Latency of query on 176,000 rows](../assets/Latency_of_query_on_176000_rows.png)
 
-### AlloyDB Throughput
+### PostgreSQL Throughput
 Remarkable latency characteristics observed during concurrent agent grounding requests.
 
-![Remarkable latency of alloydb](../assets/Remarkable_latency_of_alloydb.png)
+![Remarkable latency of postgresql](../assets/Remarkable_latency_of_postgresql.png)
 
 ---
 

@@ -3,14 +3,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Grid2X2, 
   Notebook as NotebookIcon, 
-  Activity, 
   LogOut, 
   ArrowLeftRight,
   User
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
-type DoctorTabId = 'workspace' | 'notebook' | 'imaging';
+type DoctorTabId = 'workspace' | 'notebook';
 
 interface DoctorLayoutProps {
   children: React.ReactNode;
@@ -34,7 +33,6 @@ export const DoctorLayout: React.FC<DoctorLayoutProps> = ({
   const tabs: Array<{ id: DoctorTabId; icon: React.ComponentType<{ className?: string }>; label: string }> = [
     { id: 'workspace', icon: Grid2X2, label: 'Workspace' },
     { id: 'notebook', icon: NotebookIcon, label: 'Notebook' },
-    { id: 'imaging', icon: Activity, label: '3D Imaging' },
   ];
 
   return (

@@ -129,6 +129,19 @@ class DietClient:
             logger.error("DietClient.get_recipe failed: %s", e.details())
             raise
 
+    def stream_extract_safe_ingredients(self, patient_id: int, url: str | None = None, image_base64: str | None = None):
+        request = diet_pb2.ExtractSafeIngredientsRequest(
+            patient_id=patient_id,
+            url=url or "",
+            image_base64=image_base64 or ""
+        )
+        try:
+            for response in self.stub.StreamExtractSafeIngredients(request):
+                yield response
+        except grpc.RpcError as e:
+            logger.error("DietClient.stream_extract_safe_ingredients failed: %s", e.details())
+            raise
+
     def close(self) -> None:
         self.channel.close()
 

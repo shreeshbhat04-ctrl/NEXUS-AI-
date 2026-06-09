@@ -59,6 +59,11 @@ class DietServiceStub(object):
                 request_serializer=diet__pb2.RecipeGetRequest.SerializeToString,
                 response_deserializer=diet__pb2.RecipeGetResponse.FromString,
                 _registered_method=True)
+        self.StreamExtractSafeIngredients = channel.unary_stream(
+                '/diet.DietService/StreamExtractSafeIngredients',
+                request_serializer=diet__pb2.ExtractSafeIngredientsRequest.SerializeToString,
+                response_deserializer=diet__pb2.MarketplaceIngredientResponse.FromString,
+                _registered_method=True)
 
 
 class DietServiceServicer(object):
@@ -94,6 +99,12 @@ class DietServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def StreamExtractSafeIngredients(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_DietServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -121,6 +132,11 @@ def add_DietServiceServicer_to_server(servicer, server):
                     servicer.GetRecipe,
                     request_deserializer=diet__pb2.RecipeGetRequest.FromString,
                     response_serializer=diet__pb2.RecipeGetResponse.SerializeToString,
+            ),
+            'StreamExtractSafeIngredients': grpc.unary_stream_rpc_method_handler(
+                    servicer.StreamExtractSafeIngredients,
+                    request_deserializer=diet__pb2.ExtractSafeIngredientsRequest.FromString,
+                    response_serializer=diet__pb2.MarketplaceIngredientResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -258,6 +274,33 @@ class DietService(object):
             '/diet.DietService/GetRecipe',
             diet__pb2.RecipeGetRequest.SerializeToString,
             diet__pb2.RecipeGetResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def StreamExtractSafeIngredients(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/diet.DietService/StreamExtractSafeIngredients',
+            diet__pb2.ExtractSafeIngredientsRequest.SerializeToString,
+            diet__pb2.MarketplaceIngredientResponse.FromString,
             options,
             channel_credentials,
             insecure,

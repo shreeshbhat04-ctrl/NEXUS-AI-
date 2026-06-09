@@ -264,6 +264,7 @@ class WorkflowSnapshot(FinanceBaseModel):
     gap_result: GapCalculationResult | None = None
     loan_offers: list[LoanOffer] = Field(default_factory=list)
     policy_citations: list[PolicyCitation] = Field(default_factory=list)
+    viewer_ready_format: dict = Field(default_factory=dict)
     selected_offer_id: str | None = None
     consent_status: Literal["pending", "granted", "denied"] = "pending"
     application_id: str | None = None

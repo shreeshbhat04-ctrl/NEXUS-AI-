@@ -76,10 +76,23 @@ message RecipeGetResponse {
   string recipe_json = 2; // JSON containing the recipe
 }
 
+message ExtractSafeIngredientsRequest {
+  int32 patient_id = 1;
+  string url = 2;
+  string image_base64 = 3;
+}
+
+message MarketplaceIngredientResponse {
+  bool success = 1;
+  string ingredient_json = 2; // JSON containing one ingredient
+  string message = 3;
+}
+
 service DietService {
   rpc BuildDietPlan(DietPlanRequest) returns (DietPlanResponse);
   rpc ListRecipes(RecipeListRequest) returns (RecipeListResponse);
   rpc GenerateRecipes(RecipeGenerateRequest) returns (RecipeGenerateResponse);
   rpc ScaleRecipe(RecipeScaleRequest) returns (RecipeScaleResponse);
   rpc GetRecipe(RecipeGetRequest) returns (RecipeGetResponse);
+  rpc StreamExtractSafeIngredients(ExtractSafeIngredientsRequest) returns (stream MarketplaceIngredientResponse);
 }

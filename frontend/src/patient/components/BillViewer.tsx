@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { AlertTriangle, CheckCircle2, ExternalLink, FileText, ReceiptText, SearchX } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Pill } from '../../shared/components/ui';
@@ -31,12 +32,14 @@ export function BillViewer({
   items,
   flags,
   activeCitationId,
+  pdfViewer,
 }: {
   fileName?: string | null;
   pdfUrl?: string | null;
   items: FinanceBillItem[];
   flags: FinanceAuditFlag[];
   activeCitationId?: string | null;
+  pdfViewer?: ReactNode;
 }) {
   const flagsByIndex = new Map<number, FinanceAuditFlag[]>();
   for (const flag of flags) {
@@ -86,6 +89,13 @@ export function BillViewer({
           ) : null}
         </div>
       </div>
+
+      {/* Embedded PDF Viewer */}
+      {pdfViewer ? (
+        <div className="border-b border-outline-variant/20 p-4">
+          {pdfViewer}
+        </div>
+      ) : null}
 
       <div className="grid gap-0 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="border-b border-outline-variant/20 xl:border-b-0 xl:border-r">

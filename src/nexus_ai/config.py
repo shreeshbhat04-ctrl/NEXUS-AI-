@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     postgres_db: str = "nexus_ai"
     postgres_host: str = "127.0.0.1"
     database_url: str | None = None
+    cloud_sql_connection_name: str | None = None
+    cloud_sql_database: str = "postgres"
+    cloud_sql_user: str = "postgres"
+    cloud_sql_password: str | None = None
+    voyage_api_key: str | None = None
     acute_condition_lookback_days: int = 180
     brain_gateway_mode: str = "direct"
     
@@ -41,7 +46,7 @@ class Settings(BaseSettings):
     bigquery_project_id: str | None = None
     bigquery_dataset_id: str = "nexus_ai"
     bigquery_table_id: str = "integration_events"
-    mongodb_uri: str = "mongodb://127.0.0.1:27017"
+    mongodb_uri: str = "mongodb+srv://sreeshhb_db_user:<db_password>@cluster0.j6oez1.mongodb.net/?appName=Cluster0"
     mongodb_database: str = "nexus_ai_finance"
     arize_phoenix_url: str | None = None
     arize_phoenix_project: str = "cure-quest-patient-finance"
@@ -61,17 +66,17 @@ class Settings(BaseSettings):
 
     # gRPC Service Endpoints
     grpc_brain_host: str = "localhost"
-    grpc_brain_port: int = 50051
+    grpc_brain_port: int = 50061
     grpc_integration_host: str = "localhost"
-    grpc_integration_port: int = 50052
+    grpc_integration_port: int = 50062
     grpc_clinical_host: str = "localhost"
-    grpc_clinical_port: int = 50053
+    grpc_clinical_port: int = 50063
     grpc_vision_host: str = "localhost"
-    grpc_vision_port: int = 50054
+    grpc_vision_port: int = 50064
     grpc_diet_host: str = "localhost"
-    grpc_diet_port: int = 50055
+    grpc_diet_port: int = 50065
     grpc_doctor_host: str = "localhost"
-    grpc_doctor_port: int = 50056
+    grpc_doctor_port: int = 50066
 
     @property
     def mcp_server_arg_list(self) -> list[str]:
@@ -95,8 +100,6 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        if self.app_env == "development":
-            return ["*"]
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     @property

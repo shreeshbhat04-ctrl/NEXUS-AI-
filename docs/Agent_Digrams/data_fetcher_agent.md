@@ -1,4 +1,4 @@
-# Data Fetcher Agent – Grounded AlloyDB Retrieval & MCP Protocol
+# Data Fetcher Agent – Grounded PostgreSQL Retrieval & MCP Protocol
 
 > **Document**: `nexus_ai/docs/data_fetcher_agent.md`
 > **Last updated**: 2026-05-01
@@ -7,7 +7,7 @@
 
 ## Goal
 
-The **Data Fetcher Agent** provides the "grounding" layer for all AI interactions within nexus_ai. Its primary goal is to retrieve structured facts from the **AlloyDB Patient Brain** (profiles, conditions, prescriptions) and serve them to other agents or the user with high fidelity. It ensures that the platform's reasoning is based on real clinical records, not LLM hallucinations.
+The **Data Fetcher Agent** provides the "grounding" layer for all AI interactions within nexus_ai. Its primary goal is to retrieve structured facts from the **PostgreSQL Patient Brain** (profiles, conditions, prescriptions) and serve them to other agents or the user with high fidelity. It ensures that the platform's reasoning is based on real clinical records, not LLM hallucinations.
 
 ---
 
@@ -18,7 +18,7 @@ graph TD
     OA["Orchestrator Agent"] --> DFA["Data Fetcher Agent"]
     DFA --> MCP["nexus_ai MCP Server<br/>(Model Context Protocol)"]
     MCP --> ADK["ADK Database Tools"]
-    ADK --> DB[("AlloyDB Patient Brain")]
+    ADK --> DB[("PostgreSQL Patient Brain")]
     
     DB -->|"Structured SQL Data"| DFA
     DFA -->|"Grounded Response"| OA
@@ -77,8 +77,8 @@ class MedicineGroundedAnswerResponse(BaseModel):
 ## Testing Checklist
 
 - [ ] `adk web src` → `nexus_ai_data_fetcher_agent` appears in dropdown
-- [ ] Submit query "What are my current medications?" → Confirm list matches AlloyDB `Prescription` table
+- [ ] Submit query "What are my current medications?" → Confirm list matches PostgreSQL `Prescription` table
 - [ ] Verify `brain_healthcheck` tool returns a "healthy" status in the agent logs
 - [ ] Test agent response for a non-existent patient ID (should return a clear "not found" message)
-- [ ] Confirm that `source_used` in the response explicitly mentions "AlloyDB" or "Patient Profile"
+- [ ] Confirm that `source_used` in the response explicitly mentions "PostgreSQL" or "Patient Profile"
 - [ ] Verify that the agent correctly handles multi-word medication names (e.g., "Metformin Hydrochloride")

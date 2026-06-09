@@ -41,7 +41,7 @@ graph TD
 
 1. **Workspace Management**: Handles hierarchical file storage in Google Drive, automated calendar scheduling, and professional Gmail communication using the patient's own OAuth tokens.
 2. **Audio/Voice Processing**: Transcribes patient voice notes into text and synthesizes system responses into natural-sounding audio for the Voice Assistant.
-3. **Medical Memory Management**: Coordinates with the `MedicalMemoryAdapter` to store clinical insights as vector embeddings in AlloyDB (pgvector) for semantic retrieval.
+3. **Medical Memory Management**: Coordinates with the `MedicalMemoryAdapter` to store clinical insights as vector embeddings in PostgreSQL (pgvector) for semantic retrieval.
 4. **Geographic Search**: Executes real-time searches for care destinations (pharmacies, clinics) and calculates navigation routes using the Google Maps API.
 5. **Robustness & Retries**: Implements a centralized `_with_retry` mechanism to handle transient network failures or API rate limits across all integrated services.
 
@@ -52,7 +52,7 @@ When a document is uploaded, the Integrations Agent:
 - **Classifies**: Uses the `ImageClassifierService` to detect the medical category.
 - **Routes**: Resolves the folder path: `Nexus_ai {an medical agent garden}/Doctor-X/Patient-Y/{Category}/`.
 - **Uploads**: Saves the file to Drive with a deterministic, patient-aware filename.
-- **Persists**: Updates the relevant `Prescription` or `EscalationCase` record in AlloyDB with the live `webViewLink`.
+- **Persists**: Updates the relevant `Prescription` or `EscalationCase` record in PostgreSQL with the live `webViewLink`.
 
 ---
 
@@ -77,7 +77,7 @@ class CalendarEventResponse(BaseModel):
 ## Validation & Implementation Status
 
 - [x] **Retry Logic**: Verified that `_with_retry` correctly iterates based on `integration_max_retries` configuration.
-- [x] **Credential Safety**: Verified that `_get_patient_google_credentials` correctly maps AlloyDB tokens to Google-compatible credentials.
+- [x] **Credential Safety**: Verified that `_get_patient_google_credentials` correctly maps PostgreSQL tokens to Google-compatible credentials.
 - [x] **Dynamic Routing**: Verified that `upload_document` correctly resolves hierarchical subfolders based on classification.
 - [x] **Synthetic Fallback**: Verified that `search_nearby_care_destinations` provides "Demo/Synthetic" results if live Maps API keys are missing.
 - [x] **Audio Fidelity**: Verified that `transcribe_audio` and `synthesize_speech` handle byte-streams correctly for low-latency voice interaction.

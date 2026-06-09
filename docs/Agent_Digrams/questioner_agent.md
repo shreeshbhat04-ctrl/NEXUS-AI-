@@ -16,7 +16,7 @@ The **Questioner Agent** is a safety-first component designed to handle high-sta
 ```mermaid
 graph TD
     OA["Orchestrator Agent"] -->|"Sensitive Intent Detected"| QA["Questioner Agent"]
-    QA --> DB[("AlloyDB<br/>(Doctor Registry)")]
+    QA --> DB[("PostgreSQL<br/>(Doctor Registry)")]
     
     QA --> DRAFT["Action Draft<br/>(Options + Question)"]
     DRAFT --> PA[("PendingAction Table")]
@@ -74,7 +74,7 @@ class ActionDraftResponse(BaseModel):
 
 - [x] **Database Linkage**: Verified that the agent correctly joins `Doctor` and `PatientDoctorMap` to filter relevant clinicians.
 - [x] **Default Handling**: Verified that if no doctors are mapped, the agent falls back to "Use default care team" options.
-- [x] **Persistence**: Verified that every draft results in a `PendingAction` row in AlloyDB with status `draft`.
+- [x] **Persistence**: Verified that every draft results in a `PendingAction` row in PostgreSQL with status `draft`.
 - [x] **Intent Normalization**: Verified that intents are stripped and lowercased to prevent routing errors.
 - [x] **A2A Wiring**: Verified ADK `questioner_agent` correctly wraps the internal business logic for remote execution.
 

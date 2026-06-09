@@ -15,7 +15,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { Pill, SectionShell } from '../../shared/components/ui';
-import { extractSafeIngredients, ExtractSafeIngredientsResponse, addToCart } from '../../shared/lib/api';
+import { streamExtractSafeIngredients, ExtractSafeIngredientsResponse, addToCart } from '../../shared/lib/api';
 
 const STAGGER = {
   hidden: { opacity: 0, y: 20 },
@@ -44,7 +44,6 @@ export function MarketplaceScreen({ patientId, onAddIngredient, onClose }: Marke
   const [search, setSearch] = useState('');
   const [cartCount, setCartCount] = useState(0);
   
-  const [inspirationUrl, setInspirationUrl] = useState('');
   const [inspirationFile, setInspirationFile] = useState<File | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [dynamicIngredients, setDynamicIngredients] = useState<ExtractSafeIngredientsResponse['safe_ingredients']>([]);
@@ -74,11 +73,13 @@ export function MarketplaceScreen({ patientId, onAddIngredient, onClose }: Marke
   };
 
   const handleExtract = async () => {
-    if (!inspirationUrl && !inspirationFile) return;
+    if (!inspirationFile) return;
     setIsExtracting(true);
+    setDynamicIngredients([]);
     try {
-      const result = await extractSafeIngredients(patientId, inspirationUrl || undefined, inspirationFile || undefined);
-      setDynamicIngredients(result.safe_ingredients);
+      for await (const ingredient of streamExtractSafeIngredients(patientId, undefined, inspirationFile)) {
+        setDynamicIngredients(prev => [...prev, ingredient as any]);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -96,7 +97,7 @@ export function MarketplaceScreen({ patientId, onAddIngredient, onClose }: Marke
               Dynamic Ingredient <span className="text-primary italic font-serif">Extraction</span>
             </>
           }
-          description="Paste a recipe URL or upload an image to extract ingredients, filtered safely against your medical profile."
+          description="Upload an image to extract ingredients, filtered safely against your medical profile."
         />
         {onClose && (
           <button 
@@ -111,22 +112,7 @@ export function MarketplaceScreen({ patientId, onAddIngredient, onClose }: Marke
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
         {/* Extraction Input Studio */}
-        <div className="md:col-span-12 glass-panel p-6 flex flex-col lg:flex-row gap-6 items-center">
-          <div className="flex-1 w-full space-y-4">
-            <label className="space-y-2 block">
-              <span className="text-sm font-medium text-on-surface/60 flex items-center gap-2">
-                <Link className="h-4 w-4" /> Inspiration URL
-              </span>
-              <input 
-                type="text"
-                placeholder="https://instacart.com/... or recipe blog URL"
-                className="input-shell w-full"
-                value={inspirationUrl}
-                onChange={(e) => setInspirationUrl(e.target.value)}
-              />
-            </label>
-          </div>
-          <div className="text-on-surface/40 font-serif italic text-xl">OR</div>
+        <div className="md:col-span-12 glass-panel p-6 flex flex-col gap-6 items-center">
           <div className="flex-1 w-full space-y-4">
             <label className="space-y-2 block">
               <span className="text-sm font-medium text-on-surface/60 flex items-center gap-2">
@@ -152,7 +138,7 @@ export function MarketplaceScreen({ patientId, onAddIngredient, onClose }: Marke
           <div className="shrink-0 w-full lg:w-auto">
              <button
                 onClick={handleExtract}
-                disabled={isExtracting || (!inspirationUrl && !inspirationFile)}
+                disabled={isExtracting || !inspirationFile}
                 className="river-stone-btn w-full lg:w-auto bg-gradient-to-br from-primary to-primary-container px-6 py-4 text-surface disabled:opacity-50"
              >
                 {isExtracting ? <><Loader2 className="w-5 h-5 animate-spin inline mr-2"/> Extracting...</> : 'Extract & Filter'}
@@ -199,7 +185,7 @@ export function MarketplaceScreen({ patientId, onAddIngredient, onClose }: Marke
 
           {dynamicIngredients.length === 0 && !isExtracting ? (
              <div className="p-12 text-center text-on-surface/50 border border-dashed border-outline-variant/40 rounded-3xl">
-                Upload an image or paste a URL above to extract ingredients.
+                Upload an image above to extract ingredients.
              </div>
           ) : (
             <motion.div 

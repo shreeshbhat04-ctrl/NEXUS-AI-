@@ -29,7 +29,7 @@ Nexus AI coordinates care across multiple dimensions:
 - **Document upload** for prescription scans and medical artifacts.
 - **HITL review** to produce doctor-ready summaries.
 - **Medication reminders** and care notifications.
-- **Recipe Studio** for condition-aware culinary guidance (curated from AlloyDB).
+- **Recipe Studio** for condition-aware culinary guidance (curated from PostgreSQL).
 - **HealthConnect Integration** for real-time vitals and watch-based monitoring.
 - **Google Workspace integration** for Drive, Calendar, Gmail, Speech, and Maps.
 
@@ -56,25 +56,27 @@ For detailed diagrams of the agentic breakdown, refer here:
 ## Key Features
 
 ### Recipe Studio (Browse Recipes)
-The **Recipe Studio** provides personalized nutritional guidance by fetching curated recipes from **AlloyDB** that are safe and beneficial for the patient's specific chronic conditions (e.g., eczema-friendly ingredients).
+The **Recipe Studio** provides personalized nutritional guidance by fetching curated recipes from **PostgreSQL** that are safe and beneficial for the patient's specific chronic conditions (e.g., eczema-friendly ingredients).
 - **Curated Selection**: Pre-validated recipes for common care journeys.
 - **AI-Generated**: Real-time generation of custom recipes based on available ingredients and dietary restrictions.
 - **Marketplace Sync**: Direct link to ingredient marketplaces for seamless shopping.
 
 ### HealthConnect & Watch Integration
 Nexus AI syncs with **Android HealthConnect** to monitor real-time patient vitals (heart rate, sleep, activity) via wearable devices.
-- **Patient Brain Sync**: Watch data is periodically pushed to the AlloyDB "Patient Brain" to ground the AI's conversational context.
-- **Proactive Alerts**: If abnormal vitals are detected, the system can trigger a proactive check-in or escalate to the Doctor Workspace via Asana.
+- **Patient Brain Sync**: Watch data is periodically pushed to the PostgreSQL "Patient Brain" to ground the AI's conversational context.
+- **Proactive Alerts**: If abnormal vitals are detected, the system can trigger a proactive check-in or escalate to the Doctor Workspace via Task Queue.
 
 ---
 
 ## Quick Start
 
 ### Prerequisites
-- Python 3.12+
-- Node.js 18+
+- Python 3.13+
+- Node.js 20+
+- MongoDB instance (local or Atlas)
+- Arize Phoenix (local or cloud)
 - Google Cloud project with APIs enabled (Drive, Calendar, Gmail, Speech, Maps)
-- AlloyDB instance (or use SQLite for local dev)
+- PostgreSQL/PostgreSQL instance (or use SQLite for local dev)
 
 ### 1) Backend Setup
 ```powershell
@@ -83,9 +85,12 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -e .[dev]
 
+# Download spaCy English model for Presidio PHI scrubbing
+python -m spacy download en_core_web_lg
+
 # Configure environment
 copy .env.example .env
-# Edit .env with your keys
+# Edit .env with your keys (including MONGODB_URI and ARIZE_PHOENIX_URL)
 
 # Seed demo data
 python -m nexus_ai.scripts.seed
@@ -107,15 +112,18 @@ npm run dev
 
 ### Core
 - **Backend**: FastAPI, SQLAlchemy, Pydantic.
-- **Database**: AlloyDB (PostgreSQL-compatible) for patient memory.
-- **Frontend**: React, Vite, TypeScript, Framer Motion, GSAP.
+- **Database**: 
+  - **PostgreSQL** (PostgreSQL-compatible) for patient profile, vitals, conditions, and core relational records.
+  - **MongoDB** for billing documents, audits, coverage gaps, policy text chunks, and loan offers (with GridFS for PDF storage).
+- **Frontend**: React, Vite, TypeScript, Framer Motion, GSAP, and `react-pdf-highlighter-extended` for bill annotation.
 - **State Management**: Zustand.
 
 ### AI & Agents
-- **Gemini 3.1 Flash**: Clinical reasoning and conversational engine.
-- **MedSigLIP**: Vision-based medical image classification.
-- **Google ADK**: Multi-agent orchestration framework.
+- **Gemini 3.1 Flash**: Clinical reasoning, conversational engine, multimodal vision classification, and billing audit/explanation.
+- **Google ADK**: Multi-agent orchestration framework (orchestrates Billing Agent, Gap Agent, Loan Broker Agent, and Consent Gate).
 - **MCP (Model Context Protocol)**: Standardized tool and data access.
+- **Observability**: **Arize Phoenix** for OpenTelemetry LLM tracing and agent routing visualization.
+- **Privacy**: **Microsoft Presidio** for local PHI (Protected Health Information) de-identification and scrubbing.
 
 ---
 
@@ -137,7 +145,7 @@ A3["FastAPI + Pydantic"] --> B3["Typed contracts + auto docs"]
 B3 --> C3["Faster API iteration"]
 
 %% Row 4
-A4["Gemini 3.1 Flash + AlloyDB"] --> B4["LLM grounding with patient memory"]
+A4["Gemini 3.1 Flash + PostgreSQL"] --> B4["LLM grounding with patient memory"]
 B4 --> C4["Clinical context-aware responses"]
 
 %% Row 5
@@ -145,7 +153,7 @@ A5["Google ADK"] --> B5["Multi-agent A2A orchestration"]
 B5 --> C5["Specialist task delegation"]
 
 %% Row 6
-A6["MedSigLIP"] --> B6["Vision-based medical image classification"]
+A6["Gemini Multimodal"] --> B6["Vision-based medical image classification"]
 B6 --> C6["Prescription and symptom analysis"]
 
 %% Row 7
@@ -153,21 +161,33 @@ A7["MCP (Model Context Protocol)"] --> B7["Standardised tool and data access"]
 B7 --> C7["Safe agent-to-service boundaries"]
 
 %% Row 8
-A8["AlloyDB + pgvector"] --> B8["Relational + vector patient brain"]
+A8["PostgreSQL + pgvector"] --> B8["Relational + vector patient brain"]
 B8 --> C8["Unified memory and semantic search"]
 
 %% Row 9
 A9["Cloud Run"] --> B9["Stateless containerised deployment"]
 B9 --> C9["Scalable serverless backend"]
 
+%% Row 10
+A10["MongoDB + GridFS"] --> B10["Flexible bill/audit storage + PDF archiving"]
+B10 --> C10["Durable financial advocates"]
+
+%% Row 11
+A11["Arize Phoenix"] --> B11["OpenTelemetry LLM observability & tracing"]
+B11 --> C11["Traceable clinical decisions"]
+
+%% Row 12
+A12["Microsoft Presidio"] --> B12["Local PHI scrubbing & de-identification"]
+B12 --> C12["Strict compliance boundaries"]
+
 %% Styling
 classDef tech fill:#1a73e8,color:#fff,stroke:#0b57d0;
 classDef capability fill:#f9ab00,color:#1a1a1a,stroke:#c88700;
 classDef outcome fill:#0f9d58,color:#fff,stroke:#0b7d43;
 
-class A1,A2,A3,A4,A5,A6,A7,A8,A9 tech;
-class B1,B2,B3,B4,B5,B6,B7,B8,B9 capability;
-class C1,C2,C3,C4,C5,C6,C7,C8,C9 outcome;
+class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12 tech;
+class B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12 capability;
+class C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11,C12 outcome;
 ```
 
 ---
@@ -183,8 +203,14 @@ graph TD
     API --> ORCH[Multi-Agent Orchestrator]
     ORCH --> GEN[Gemini 3.1 Flash]
     ORCH --> MCP[MCP Server]
-    MCP --> DB[(AlloyDB Patient Brain)]
+    MCP --> DB[(PostgreSQL Patient Brain)]
     ORCH --> AGENTS[ADK Sub-Agents: Vision, Recipe, Map, etc.]
+    
+    %% Patient Finance
+    API --> FIN_ORCH[Patient Finance Orchestrator]
+    FIN_ORCH --> MDB[(MongoDB Finance Store)]
+    FIN_ORCH --> PHOENIX[Arize Phoenix Tracing]
+    FIN_ORCH --> DB
 ```
 
 For detailed sequence diagrams, see [Architecture and Design](docs/ARCHITECTURE_AND_DESIGN.md).
@@ -229,7 +255,7 @@ UP --> VA["Vision Agent"]
 VA -->|classify| FOLLOW["Follow-up / Doctor Handoff / Chat"]
 
 MEDS --> SAFE["Drug Safety Check"]
-SAFE --> GEM1["Gemini + AlloyDB"]
+SAFE --> GEM1["Gemini + PostgreSQL"]
 
 MEDS --> RS["Recipe Studio"]
 RS --> CUR["Curated Recipes"]
@@ -254,7 +280,7 @@ CHAT --> ACTION["Structured Action Draft"]
 ACTION -->|confirm| CONFIRM["Action Confirm"]
 CONFIRM --> EXEC["Execute"]
 
-EXEC --> ASANA["Asana"]
+EXEC --> ASANA["Task Queue"]
 EXEC --> GMAIL["Gmail"]
 EXEC --> CAL["Google Calendar"]
 
@@ -269,11 +295,11 @@ end
 %% ================= DOCTOR WORKSPACE =================
 subgraph DW[Doctor Workspace Journey]
 
-DOC --> QUEUE["Live Asana Task Queue"]
+DOC --> QUEUE["Live Task Queue Task Queue"]
 QUEUE -->|filter| TASKS["Tasks by Doctor GID"]
 
 DOC --> OPEN["Open Task"]
-OPEN --> ASANA2["Asana Permalink"]
+OPEN --> ASANA2["Task Queue Permalink"]
 
 DOC --> RECORDS["Patient Records"]
 RECORDS --> PROF2["Profile + Snapshots"]
@@ -318,17 +344,19 @@ nexus_ai/
 │   │   ├── hooks/       # Custom React hooks
 │   │   ├── lib/         # API and data utilities
 │   │   ├── screens/     # Route pages (Dashboard, CareMaze, etc.)
+│   │   ├── patient/     # Patient portal modules (components, hooks, screens)
 │   │   └── assets/      # Static assets
 │   ├── package.json
 │   └── vite.config.ts
 ├── src/
 │   └── nexus_ai/
-│       ├── adapters/    # External service connectors (Asana, Gmail, etc.)
+│       ├── adapters/    # External service connectors (Task Queue, Gmail, etc.)
 │       ├── adk/         # ADK agent logic
 │       ├── agents/      # Specialist Python agents
 │       ├── api/         # FastAPI routes and models
 │       ├── db/          # Database models and bootstrap
 │       ├── mcp/         # Model Context Protocol server
+│       ├── patient_finance/ # Patient Financial Advocate module (billing, gap, loans, privacy, mongodb)
 │       ├── scripts/     # Utility scripts (seed, test)
 │       ├── services/    # Business logic and model routing
 │       └── app.py       # Main entry point
@@ -357,7 +385,7 @@ Each module is indexed with its purpose, inputs, and complexity. Where exact int
 | `frontend/src/screens/DashboardScreen.tsx` | Patient home view | Workspace context | Polling/refresh effects | Default component | Framer Motion, GSAP | Manual review | Render-bound |
 | `frontend/src/screens/CareMazeScreen.tsx` | Symptom & Map view | Location context | Geolocation effects | Default component | Google Maps, Lucide | Manual review | UI logic |
 | `frontend/src/screens/MedicationHubScreen.tsx` | Prescription manager | Patient id | Upload/Delete state | Default component | Axios, Framer Motion | Manual review | List-bound |
-| `frontend/src/screens/DoctorWorkspaceScreen.tsx` | Clinician portal | Doctor context | Task queue state | Default component | Asana Adapter | Manual review | O(n) tasks |
+| `frontend/src/screens/DoctorWorkspaceScreen.tsx` | Clinician portal | Doctor context | Task queue state | Default component | Task Queue Adapter | Manual review | O(n) tasks |
 | `frontend/src/screens/HistoryScreen.tsx` | Care timeline | Patient history | Grouping/Sorting logic | Default component | Date-fns | Manual review | O(n) events |
 | `frontend/src/screens/HITLScreen.tsx` | Doctor review flow | Case id | Review submission state | Default component | Backend HITL API | Manual review | Form-bound |
 | `frontend/src/screens/Profile.tsx` | User settings | User session | Edit/Save lifecycle | Default component | Zustand Store | Manual review | Form-bound |
@@ -369,6 +397,12 @@ Each module is indexed with its purpose, inputs, and complexity. Where exact int
 | `src/nexus_ai/api/routes.py` | Backend API routes | Pydantic models | FastAPI lifespan | Router definition | Services, Agents | `test_api.py` | O(1) routing |
 | `src/nexus_ai/agents/orchestrator.py` | Task delegation | User message | Stateless reasoning | `route_conversation` | Specialist Agents | Unit tests | Intent-bound |
 | `src/nexus_ai/mcp/server.py` | Tool access layer | Tool requests | Server lifecycle | `mcp.server` | DB, Services | `test_mcp.py` | Tool-bound |
+| `frontend/src/patient/screens/FinancialAdvocateScreen.tsx` | Financial advocate portal screen | Workspace context | Sub-workflow state | Default component | GSAP, Lucide | Manual review | Form-bound |
+| `frontend/src/patient/components/BillViewer.tsx` | PDF highlighter and audit viewer | Bill items, PDF bytes | Annotation active layer | Default component | pdf-highlighter-extended | Manual review | UI logic |
+| `frontend/src/patient/hooks/useFinancialWorkflow.ts` | Financial advocate frontend state hook | Patient session | Polling/refresh state | `useFinancialWorkflow` | Zustand / Axios | Manual review | O(1) access |
+| `src/nexus_ai/patient_finance/api_routes.py` | Patient finance routes | Pydantic models | FastAPI lifespan | Finance router definition | mongodb, orchestrator | `test_patient_finance.py` | O(1) routing |
+| `src/nexus_ai/patient_finance/orchestrator.py` | Patient finance multi-agent workflow | File bytes / consent | Session state lifespan | `start_workflow`, `submit_loan` | Billing, Gap, Loan Agents | `test_patient_finance.py` | Session-bound |
+| `src/nexus_ai/patient_finance/mongodb.py` | MongoDB connection manager | Connection URI | Driver client lifecycle | `init_mongodb`, `create_bill` | Motor, GridFS | `test_mongo.py` | IO-bound |
 
 ---
 
@@ -378,12 +412,19 @@ Nexus AI uses **Pydantic** for strict API contract enforcement. All requests and
 - **Conversation**: `POST /orchestration/conversation-route`
 - **Voice**: `POST /orchestration/voice-route`
 - **HITL Report**: `POST /orchestration/hitl-report`
+- **Financial Advocate**:
+  - **Upload Bill**: `POST /api/finance/upload-bill` (uploads PDF bill, parses layout via `opendataloader-pdf`, and initiates workflow)
+  - **Audit Bill**: `POST /api/finance/audit` (runs rule-based billing audits)
+  - **Calculate Gap**: `POST /api/finance/gap` (calculates cost gaps based on coverage)
+  - **Get Loan Offers**: `POST /api/finance/loans` (discovers and ranks financing offers)
+  - **Submit Consent**: `POST /api/finance/consent` (registers signature for sharing info with lenders)
+  - **Submit Loan Application**: `POST /api/finance/submit` (submits the final ranked financing application)
 
 ---
 
 ## Data Flow & State Management
 - **Frontend State**: Managed via **Zustand** for global workspace data and **React Hooks** for local component state.
-- **Backend Flow**: Audio/Text -> Orchestrator -> Intent Analysis -> Specialist Agent -> Tool Call (MCP) -> Brain (AlloyDB) -> Response Synthesis -> Patient.
+- **Backend Flow**: Audio/Text -> Orchestrator -> Intent Analysis -> Specialist Agent -> Tool Call (MCP) -> Brain (PostgreSQL) -> Response Synthesis -> Patient.
 
 ```mermaid
 flowchart TB
@@ -422,12 +463,12 @@ end
 
 %% ================= STORAGE =================
 subgraph ST[Storage Layer]
-    DB[(AlloyDB)]
+    DB[(PostgreSQL)]
     LS[(localStorage)]
 end
 
 %% ================= EXTERNAL =================
-ASANA[Asana Task]
+ASANA[Task Queue Task]
 GMAIL[Gmail Summary]
 DRIVE[Google Drive]
 MAPS[Google Maps]
@@ -509,7 +550,7 @@ end
 %% ================= PROCESSING =================
 subgraph PS[Processing + Storage]
     PROC["Project Processing<br/>(Agents / Orchestrator / Vision / Recipe / Map)"]
-    DB[(AlloyDB)]
+    DB[(PostgreSQL)]
     SESS["Upload Sessions<br/>JSON store"]
 end
 
@@ -517,7 +558,7 @@ end
 subgraph EXT[External Services]
     GM["Gmail Adapter"]
     GD["Google Drive Adapter"]
-    AS["Asana Adapter"]
+    AS["Task Queue Adapter"]
     MAP["MCP Google Maps"]
 end
 
@@ -584,8 +625,8 @@ class LS,ADMIN local;
 ## AI/ML Section
 
 ### Model Routing
-- **Gemini 3.1 Flash**: Handles complex reasoning, patient check-ins, and multi-turn chat. It leverages AlloyDB grounding to ensure responses are clinical-context-aware.
-- **MedSigLIP**: Integrated for specialized image classification tasks, such as identifying prescription labels and symptom severity from photos.
+- **Gemini 3.1 Flash**: Handles complex reasoning, patient check-ins, and multi-turn chat. It leverages PostgreSQL grounding to ensure responses are clinical-context-aware.
+- **Gemini Vision**: Integrated for specialized image classification tasks, such as identifying prescription labels and symptom severity from photos.
 
 ### Agentic Patterns
 - **Google ADK**: Enables A2A (Agent-to-Agent) delegation. For example, the Vision Agent can delegate to the Recipe Agent when it detects a dietary restriction in an uploaded document.

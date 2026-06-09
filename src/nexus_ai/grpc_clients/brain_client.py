@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class BrainClient:
     """Client wrapper for BrainService gRPC calls."""
 
-    def __init__(self, host: str = "localhost", port: int = 50051) -> None:
+    def __init__(self, host: str = "localhost", port: int = 50061) -> None:
         self.target = f"{host}:{port}"
         self.channel = grpc.insecure_channel(self.target)
         self.stub = brain_pb2_grpc.BrainServiceStub(self.channel)

@@ -21,7 +21,7 @@ graph TD
     CA --> NA["Notification Adapter<br/>(Gmail/Mock)"]
     
     GEM -->|"Empathetic Text"| OUT["Final Patient Message"]
-    NA -->|"Channel Delivery"| LOG["Notification Logs (AlloyDB)"]
+    NA -->|"Channel Delivery"| LOG["Notification Logs (PostgreSQL)"]
 ```
 
 ---
@@ -69,7 +69,7 @@ class ConversationRoutingResponse(BaseModel):
 
 - [x] **Empathetic Prompting**: Verified that system instructions enforce concise, 1-2 sentence conversational styles.
 - [x] **Patient Personalization**: Verified that `build_conversation_plan` correctly injects patient name and summary into the LLM context.
-- [x] **Notification Logging**: Verified that every `notify` call creates a record in the `Notification` table in AlloyDB.
+- [x] **Notification Logging**: Verified that every `notify` call creates a record in the `Notification` table in PostgreSQL.
 - [x] **Model Fallback**: Verified that `_generate_gemini_text` iterates through a candidate list of models if the primary model fails.
 - [x] **HTML Safety**: Verified that `_build_professional_care_email` uses proper escaping to prevent script injection in doctor emails.
 

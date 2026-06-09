@@ -1,1 +1,2 @@
-cure_quest
+nexus_ai
+nexus_ai_doctor

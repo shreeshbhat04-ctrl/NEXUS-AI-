@@ -16,7 +16,6 @@ import { useWorkspace } from './patient/hooks/useWorkspace';
 import { DoctorWorkspaceScreen } from './doctor/screens/DoctorWorkspaceScreen';
 import { DoctorLayout } from './doctor/components/DoctorLayout';
 import MedicalNotebookScreen from './doctor/screens/MedicalNotebookScreen';
-import X2CTViewerScreen from './doctor/screens/X2CTViewerScreen';
 
 export default function App() {
   const [loggedInPatientId, setLoggedInPatientId] = useState<number | null>(() => {
@@ -56,7 +55,7 @@ function DoctorPortal({
   onRoleChange: () => void;
   onLogout: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<'workspace' | 'notebook' | 'imaging'>('workspace');
+  const [activeTab, setActiveTab] = useState<'workspace' | 'notebook'>('workspace');
 
   const renderScreen = () => {
     switch (activeTab) {
@@ -64,8 +63,6 @@ function DoctorPortal({
         return <DoctorWorkspaceScreen patientId={patientId} onRoleChange={onRoleChange} />;
       case 'notebook':
         return <MedicalNotebookScreen />;
-      case 'imaging':
-        return <X2CTViewerScreen />;
       default:
         return <DoctorWorkspaceScreen patientId={patientId} onRoleChange={onRoleChange} />;
     }

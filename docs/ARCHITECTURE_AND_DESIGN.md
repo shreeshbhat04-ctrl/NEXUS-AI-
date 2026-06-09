@@ -24,8 +24,8 @@ nexus_ai is a multi-agent healthcare assistant platform built around:
 - React frontend experiences (chat, voice, medication workflows, history)
 - FastAPI backend APIs and orchestration routes
 - A central Orchestrator that routes tasks to specialist agents and services
-- A shared patient brain backed by SQLAlchemy and AlloyDB/Postgres-compatible storage
-- External integrations (Google Workspace, Speech, BigQuery, Asana, Gemini 3.1 Flash)
+- A shared patient brain backed by SQLAlchemy and PostgreSQL/Postgres-compatible storage
+- External integrations (Google Workspace, Speech, BigQuery, Task Queue, Gemini 3.1 Flash)
 
 Design goals:
 
@@ -86,10 +86,10 @@ graph TD
 
     %% Data & External Services Layer
     subgraph ExternalServices [External Integrations and Data]
-        Brain[(AlloyDB Patient Brain)]
+        Brain[(PostgreSQL Patient Brain)]
         Speech[Google Cloud STT and TTS]
         Workspace[Google Workspace: Drive, Gmail, Cal]
-        Asana[Asana Task Escalation]
+        Task Queue[Task Queue Task Escalation]
         HealthConnect[Android HealthConnect]
         BigQuery[(BigQuery Analytics)]
         Gemini[Gemini 3.1 Flash]
@@ -107,7 +107,8 @@ graph TD
     Voice <--> |Audio WebM| Routes
     Chat <--> |Text / JSON| Routes
 
-    Routes <--> |Orchestrate| Orchestrator
+    Routes <--> |Orchestrate Core| Orchestrator
+    Routes <--> |Orchestrate Finance| FinanceOrch
 
     Orchestrator --> |Patient History| Brain
     Orchestrator --> |Reasoning| Gemini
@@ -121,26 +122,43 @@ graph TD
     IntegAgent --> |Log Trails| BigQuery
     IntegAgent --> |Wearable Sync| HealthConnect
 
-    HITLAgent --> |Create Task| Asana
+    HITLAgent --> |Create Task| Task Queue
 
     %% ADK delegation
     Orchestrator -.-> |ADK A2A| VisionAgt
     Orchestrator -.-> |ADK A2A| RecipeAgt
     Orchestrator -.-> |ADK A2A| QuestAgt
     Orchestrator -.-> |ADK A2A| DataAgt
+
+    %% Patient Finance Subgraph
+    subgraph FinanceSuite [Patient Financial Advocate]
+        FinanceOrch((Finance Orchestrator))
+        BillingAgt[Billing Agent]
+        GapAgt[Gap Agent]
+        LoanBrokerAgt[Loan Broker Agent]
+        ConsentGate[Consent Gate]
+    end
+
+    FinanceOrch --> BillingAgt
+    FinanceOrch --> GapAgt
+    FinanceOrch --> LoanBrokerAgt
+    FinanceOrch --> ConsentGate
+    FinanceOrch <--> |GridFS / Collections| MDB[(MongoDB Store)]
+    FinanceOrch --> |Observability| Phoenix[Arize Phoenix]
+    FinanceOrch --> |Anonymize PHI| Presidio[Microsoft Presidio]
 ```
 
 ## 4. Runtime Components and Ownership
 
 ### Frontend
 
-- Hosts patient-facing workflows (dashboard, care maze, medication hub, HITL views)
-- Captures voice input and file uploads
-- Calls backend APIs through typed request models
+- Hosts patient-facing workflows (dashboard, care maze, medication hub, HITL views, and the Financial Advocate screen)
+- Captures voice input, file uploads, and PDF bill uploads
+- Calls backend APIs through typed request models and streams audit SSE events
 
 ### FastAPI API Layer
 
-- Exposes bounded endpoints under patient, orchestration, documents, and integrations domains
+- Exposes bounded endpoints under patient, orchestration, documents, patient finance, and integrations domains
 - Validates payloads, manages auth/session context, and normalizes responses
 - Delegates business logic to services and agents
 
@@ -150,11 +168,18 @@ graph TD
 - Communications Agent: empathetic patient-facing language generation
 - Integrations Agent: tool and provider orchestration across speech, calendar, drive, and analytics
 - HITL Agent: clinician handoff packaging, report generation, escalation metadata
+- **Patient Finance Orchestrator**: coordinates the billing audit, out-of-pocket gap analysis, and credit matchmaking workflows.
+  - **Billing Agent**: handles itemized billing layout extraction and duplicate check audits.
+  - **Gap Agent**: executes coverage policy comparisons and out-of-pocket gap math.
+  - **Loan Broker Agent**: compares, matches, and ranks financing offers.
+  - **Consent Gate**: verifies patient authorization before external loan submission.
 
 ### Brain and Database Layer
 
 - Shared patient memory model across API and tool-driven paths
-- SQLAlchemy-based persistence with Postgres-compatible schema
+- **Multi-database setup**:
+  - **PostgreSQL (PostgreSQL)**: handles patient bio, vital timelines, chronic condition schemas, and medication reminders.
+  - **MongoDB**: handles unstructured medical bills (PDFs via GridFS), parsed line items, billing audit flags, credit offers, insurance policy text chunks, and consent signatures.
 - Supports direct access mode and MCP-mediated access mode
 
 ### Tool and Agent Runtime (ADK and MCP)
@@ -172,14 +197,14 @@ The ADK layer uses explicit agent-to-agent (A2A) delegation:
   - Recipe Agent: diet-safe recipe generation
   - Communication Agent: email/chat/calendar wording
   - Questioner Agent: missing user decisions and action confirmation
-  - Data Fetcher Agent: AlloyDB grounded lookup and patient context
+  - Data Fetcher Agent: PostgreSQL grounded lookup and patient context
   - Map Agent: Care Maze location search and route generation
 - **Vision Agent** (`nexus_ai_vision_agent`): Delegates to:
   - Recipe Agent: when medication/diet is relevant
   - Communication Agent: for patient-friendly summary composition
   - Questioner Agent: if doctor/action confirmation is needed
 - **Data Fetcher Agent** (`nexus_ai_data_fetcher_agent`): Provides:
-  - Medicine facts from AlloyDB
+  - Medicine facts from PostgreSQL
   - Patient profile snapshots
   - Historical condition context
 - **Map Agent** (`nexus_ai_map_agent`): Provides:
@@ -195,7 +220,7 @@ sequenceDiagram
     participant VoiceUI as Voice Assistant (React)
     participant API as FastAPI Router
     participant Orchestrator as Agent Orchestrator
-    participant Brain as Backend DB (AlloyDB)
+    participant Brain as Backend DB (PostgreSQL)
     participant Integrations as Integration Services
     participant LLM as Gemini 3.1 Flash
 
@@ -253,13 +278,16 @@ sequenceDiagram
 
 | Integration | Primary Purpose | Entry Point | Failure Mode Handling |
 |---|---|---|---|
-| Google STT and TTS | Voice transcription and synthesis | Orchestration voice routes | Return text-only fallback when audio generation fails |
+| Google STT and TTS | Voice transcription and synthesis | Flights or audio routes | Return text-only fallback when audio generation fails |
 | Google Drive and Calendar | File storage and reminder scheduling | Documents and reminders APIs | Persist partial success and surface next action to user |
 | Gmail | Care summary delivery | Notification or summary APIs | Queue retry with error metadata |
 | BigQuery | Audit and event analytics | Integration logging service | Non-blocking fire-and-forget with retry path |
-| Asana | Escalation and tasking | Ticketing adapter | Local escalation record if remote ticketing fails |
+| Task Queue | Escalation and tasking | Ticketing adapter | Local escalation record if remote ticketing fails |
 | Gemini 3.1 Flash | Conversation, clinical reasoning, and multimodal analysis | Model router and communication flows | Route to backup model policy and log trace |
-| MedSigLIP | Vision classification workflows | Document and retrieval services | Degrade to rules-based extraction if model unavailable |
+| Gemini Vision | Vision classification workflows | Document and retrieval services | Degrade to rules-based extraction if model unavailable |
+| MongoDB + GridFS | Patient billing files, parsed layout items, and credit offers | Patient finance router (`/api/finance`) | Fallback to clean state; local logging of database operations |
+| Arize Phoenix | OpenTelemetry tracing and LLM performance debugging | OpenTelemetry spans & exporter | Silent failure; trace errors do not disrupt main thread logic |
+| Microsoft Presidio | Local PHI de-identification and scrubbing | Privacy redaction module (`privacy.py`) | Reject highly sensitive payloads or proceed with strict anonymization |
 
 ## 8. API Capability Map
 
@@ -294,12 +322,21 @@ These capabilities are adapter outcomes, not just model prompt behavior: the ada
 
 Key persistent entities include:
 
-- patients
-- chronic_conditions
-- prescriptions
-- medication_events
-- escalation_cases
-- notifications
+### PostgreSQL Relational Store
+- **patients**: Patient bio, credentials, demographics
+- **chronic_conditions**: Symptoms, severe thresholds
+- **prescriptions**: Dosage, frequency, active status
+- **medication_events**: Patient adherence history
+- **escalation_cases**: HITL clinical tasks
+- **notifications**: Alerts pushed to patient device
+
+### MongoDB Document Store
+- **bills**: Medical bills metadata, GridFS PDF references, and Google Drive upload links
+- **bill_audits**: Audit status, duplicate warnings, price anomaly audits
+- **patient_gaps**: Patient out-of-pocket obligations and insurance calculations
+- **loan_offers**: Matched financing loans and APR terms
+- **policy_chunks**: Grounding chunks for coverage policy retrieval
+- **consent_logs**: Checked records of patient signing disclosures
 
 Design intent:
 
@@ -318,14 +355,14 @@ Design intent:
 
 ### Integration environment
 
-- AlloyDB-backed persistence
+- PostgreSQL-backed persistence
 - Real Google API credentials and scoped service calls
 - ADK and MCP enabled for full tool route validation
 
 ### Production intent
 
 - Managed FastAPI runtime behind HTTPS ingress
-- AlloyDB with private networking and credential rotation
+- PostgreSQL with private networking and credential rotation
 - Structured logging and analytics sinks enabled
 - Strict access controls on PHI-bearing workflows
 

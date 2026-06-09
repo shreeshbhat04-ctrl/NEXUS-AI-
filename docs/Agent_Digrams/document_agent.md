@@ -7,7 +7,7 @@
 
 ## Goal
 
-The **Document Agent** is responsible for the complex routing and planning required to ingest medical documents (prescriptions, lab reports, symptom photos). It analyzes file metadata and raw text hints to determine the most effective OCR and reasoning strategy, ensuring that each document is processed by the optimal AI model (e.g., MedSigLIP for vision or Gemini for structured reasoning).
+The **Document Agent** is responsible for the complex routing and planning required to ingest medical documents (prescriptions, lab reports, symptom photos). It analyzes file metadata and raw text hints to determine the most effective OCR and reasoning strategy, ensuring that each document is processed by the optimal AI model (e.g., Gemini Vision/Flash for image classification and structured reasoning).
 
 ---
 
@@ -76,7 +76,7 @@ class DocumentPipelineResponse(BaseModel):
 - [x] **Path Resolution**: Verified that `Path(file_path).name` correctly extracts filenames for storage metadata.
 - [x] **Default Model Fallback**: Verified that the agent defaults to `gemini_fast_model_id` if the router doesn't specify a secondary model.
 - [x] **Execution Transparency**: Verified that the `route_reason` and `execution_plan` strings are passed through for frontend transparency.
-- [x] **AlloyDB Linkage**: Verified that the `prescription_id` is preserved throughout the pipeline for eventual database updates.
+- [x] **PostgreSQL Linkage**: Verified that the `prescription_id` is preserved throughout the pipeline for eventual database updates.
 
 ---
 

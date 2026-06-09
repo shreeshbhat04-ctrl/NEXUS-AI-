@@ -25,6 +25,7 @@ export default defineConfig(({ mode }) => {
         '/orchestration': backend,
         '/medical-memory': backend,
         '/medical-models': backend,
+        '/api/finance': backend,
       },
     },
   };

@@ -16,8 +16,8 @@ The **Routine Agent** is responsible for monitoring a patient's adherence to the
 ```mermaid
 graph TD
     OA["Orchestrator Agent"] --> RA["Routine Agent"]
-    RA --> TA["Ticketing Adapter<br/>(Asana/Mock)"]
-    TA --> AS["Asana Routine Project"]
+    RA --> TA["Ticketing Adapter<br/>(Task Queue/Mock)"]
+    TA --> AS["Task Queue Routine Project"]
     
     AS -->|"List Tasks"| RA
     RA --> RC{"Risk Calculator"}
@@ -33,7 +33,7 @@ graph TD
 
 ## Core Responsibilities
 
-1. **Routine Retrieval**: Fetches the full list of tasks for the current patient from the routine tracking system (Asana).
+1. **Routine Retrieval**: Fetches the full list of tasks for the current patient from the routine tracking system (Task Queue).
 2. **Adherence Risk Assessment**:
    - **Low Risk**: All tasks are either completed or not yet due.
    - **Medium Risk**: At least one task is due today or one task is overdue.
@@ -76,9 +76,9 @@ class RoutineSnapshotResponse(BaseModel):
 
 ## Validation & Implementation Status
 
-- [x] **Asana Integration**: Verified that `list_routine_tasks` correctly filters by the current patient's identity.
+- [x] **Task Queue Integration**: Verified that `list_routine_tasks` correctly filters by the current patient's identity.
 - [x] **Risk Granularity**: Verified that the logic distinguishes between "Due Today" (Medium) and "2+ Overdue" (High).
-- [x] **Date Handling**: Verified that `date.today().isoformat()` is used for consistent comparison against Asana's `YYYY-MM-DD` format.
+- [x] **Date Handling**: Verified that `date.today().isoformat()` is used for consistent comparison against Task Queue's `YYYY-MM-DD` format.
 - [x] **Snapshot Accuracy**: Verified that the `routine_summary` string correctly pluralizes and reflects the raw counts.
 - [x] **Model Simplicity**: Verified that the agent remains stateless and derives all insights from the live ticketing adapter.
 
@@ -87,7 +87,7 @@ class RoutineSnapshotResponse(BaseModel):
 ## Testing Checklist
 
 - [ ] `adk web src` → Routine Snapshot is visible in the patient dashboard
-- [ ] Mark 2 tasks as overdue in Asana → Confirm `risk_level` shifts to "high"
+- [ ] Mark 2 tasks as overdue in Task Queue → Confirm `risk_level` shifts to "high"
 - [ ] Complete all tasks for today → Confirm `risk_level` shifts to "low"
 - [ ] Verify `due_today_count` correctly includes tasks scheduled for the current system date
 - [ ] Confirm `RoutineTaskResponse` handles tasks with missing `due_on` dates gracefully

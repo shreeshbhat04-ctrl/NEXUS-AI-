@@ -2,6 +2,7 @@ import { useDeferredValue, useMemo, useState } from 'react';
 import { BookOpen, FileText, Search } from 'lucide-react';
 import { EmptyState } from '../../shared/components/States';
 import { Pill } from '../../shared/components/ui';
+import { CitationMarker } from './CitationMarker';
 import type { FinancePolicyCitation } from '../../shared/lib/api';
 
 function toneForCitation(tag: FinancePolicyCitation['relevance_tag']): 'sage' | 'terracotta' | 'sand' {
@@ -93,7 +94,15 @@ export function PolicyCitationPanel({
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-on-surface">{citation.section_title}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-on-surface">{citation.section_title}</p>
+                      <CitationMarker
+                        index={filtered.indexOf(citation) + 1}
+                        citation={citation}
+                        isActive={isActive}
+                        onActivate={onCitationClick}
+                      />
+                    </div>
                     <p className="mt-1 text-xs uppercase tracking-[0.18em] text-on-surface/40">
                       page {citation.page_number}
                     </p>

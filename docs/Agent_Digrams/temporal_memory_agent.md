@@ -17,7 +17,7 @@ The **Temporal Memory Agent** serves as the "short-term clinical memory" of the 
 graph TD
     OA["Orchestrator Agent"] -->|"Need Context for Patient X"| TM["Temporal Memory Agent"]
     TM --> BG["BrainGateway<br/>(Data Access Layer)"]
-    BG --> DB[("AlloyDB Patient Brain")]
+    BG --> DB[("PostgreSQL Patient Brain")]
     
     DB -->|"Relational Data"| BG
     BG -->|"BrainCondition List"| TM
@@ -60,7 +60,7 @@ class BrainCondition(BaseModel):
 
 ## Validation & Implementation Status
 
-- [x] **Relational Mapping**: Verified that the agent correctly interfaces with the `BrainGateway` to query AlloyDB.
+- [x] **Relational Mapping**: Verified that the agent correctly interfaces with the `BrainGateway` to query PostgreSQL.
 - [x] **Interface Consistency**: Verified that it returns a list of `BrainCondition` objects, which are understood by the Diet and Formulary agents.
 - [x] **Orchestrator Wiring**: Verified that the Orchestrator initializes a shared `BrainGateway` and passes it to Temporal Memory to minimize connection overhead.
 - [x] **Empty State Handling**: Verified that if a patient has 0 conditions, the agent returns an empty list rather than an error.

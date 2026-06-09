@@ -1,6 +1,7 @@
 import { DollarSign, ShieldCheck, Wallet } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Pill } from '../../shared/components/ui';
+import { CitationMarker } from './CitationMarker';
 import type { FinanceGapResult, FinancePolicyCitation } from '../../shared/lib/api';
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -133,16 +134,22 @@ export function GapSummary({
       {citations.length ? (
         <div className="mt-6 space-y-3 rounded-[1.1rem] bg-primary-fixed/12 p-4">
           <p className="eyebrow text-primary/70">Coverage references</p>
-          {citations.slice(0, 2).map((citation) => (
-            <button
+          {citations.slice(0, 2).map((citation, index) => (
+            <div
               key={citation.id}
-              type="button"
-              onClick={() => onCitationClick?.(citation.id)}
               className="block w-full rounded-xl bg-white/70 px-4 py-3 text-left text-sm leading-6 text-on-surface/72 transition-colors hover:bg-white"
             >
-              <span className="font-semibold text-primary">{citation.section_title}</span>
-              <span className="block">{citation.excerpt}</span>
-            </button>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-primary">{citation.section_title}</span>
+                <CitationMarker
+                  index={index + 1}
+                  citation={citation}
+                  isActive={false}
+                  onActivate={onCitationClick ?? (() => {})}
+                />
+              </div>
+              <span className="block mt-1">{citation.excerpt}</span>
+            </div>
           ))}
         </div>
       ) : null}

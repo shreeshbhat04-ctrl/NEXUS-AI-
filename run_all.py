@@ -36,11 +36,17 @@ try:
     print("\nAll gRPC services started.")
     print("Starting FastAPI Gateway...\n")
     
-    fastapi_cmd = [sys.executable, "-m", "uvicorn", "nexus_ai.app:app", "--reload"]
+    fastapi_cmd = [sys.executable, "-m", "uvicorn", "nexus_ai.app:app", "--port", "8000", "--reload"]
     fastapi_process = subprocess.Popen(fastapi_cmd, env=env)
     processes.append(("FastAPI Gateway", fastapi_process))
     
+    print("Starting Doctor API Gateway on port 8001...\n")
+    doctor_api_cmd = [sys.executable, "-m", "uvicorn", "nexus_ai_doctor.app:app", "--port", "8001", "--reload"]
+    doctor_api_process = subprocess.Popen(doctor_api_cmd, env=env)
+    processes.append(("Doctor API Gateway", doctor_api_process))
+    
     fastapi_process.wait()
+    doctor_api_process.wait()
 
 except KeyboardInterrupt:
     print("\nShutting down all services...")

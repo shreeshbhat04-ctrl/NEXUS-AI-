@@ -56,18 +56,3 @@ export async function explainOptions(question: string, options: string[]) {
   }
   return response.json();
 }
-
-export async function reconstructImaging(apFile: File, latFile: File) {
-  const formData = new FormData();
-  formData.append('ap_xray', apFile);
-  formData.append('lat_xray', latFile);
-  const response = await fetch(`${DOCTOR_API_BASE_URL}/api/v1/imaging/reconstruct`, {
-    method: 'POST',
-    body: formData
-  });
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(errText || '3D reconstruction failed');
-  }
-  return response.json();
-}

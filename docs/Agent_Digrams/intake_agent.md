@@ -16,7 +16,7 @@ The **Intake Agent** manages the critical first contact between a patient and th
 ```mermaid
 graph TD
     U["User/Form Input"] --> IA["Intake Agent"]
-    IA --> DB[("AlloyDB<br/>(Patient/Conditions)")]
+    IA --> DB[("PostgreSQL<br/>(Patient/Conditions)")]
     
     IMG["Prescription Image"] --> IA
     IA --> OCR["OCR Adapter<br/>(Gemini Vision/Mock)"]

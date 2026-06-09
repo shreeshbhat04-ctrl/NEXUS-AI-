@@ -1,9 +1,10 @@
 from nexus_ai.config import get_settings
-
+from nexus_ai.memory.shared_memory import SharedMemoryManager
 
 class ModelRoutingService:
     def __init__(self) -> None:
         self.settings = get_settings()
+        self.memory_manager = SharedMemoryManager()
         self._medical_keywords = {
             "pain",
             "fever",
@@ -152,3 +153,27 @@ class ModelRoutingService:
             return False
         lowered = file_path.lower().strip()
         return any(lowered.endswith(extension) for extension in self._image_extensions)
+
+    async def append_dynamic_thinking_style(self, patient_id: int, base_prompt: str, context_query: str) -> str:
+        """
+        Retrieves relevant constraints from the Shared Agent Memory and pre-pends
+        them to the base system prompt to adjust the agent's thinking style dynamically.
+        """
+        memories = await self.memory_manager.search_memories(patient_id, context_query, limit=3)
+        
+        if not memories:
+            return base_prompt
+            
+        memory_context = "\n".join(
+            [f"- [{mem['source_agent']}] {mem['content']}" for mem in memories]
+        )
+        
+        dynamic_prompt = (
+            f"=== DYNAMIC PATIENT CONTEXT & CONSTRAINTS ===\n"
+            f"The following facts have been learned by other agents. Adjust your tone and "
+            f"recommendations accordingly:\n{memory_context}\n"
+            f"=============================================\n\n"
+            f"{base_prompt}"
+        )
+        
+        return dynamic_prompt

@@ -86,8 +86,11 @@ def get_loans(bill_id: str) -> dict[str, Any]:
 @finance_router.get("/policy-citations/{bill_id}")
 def get_policy_citations(bill_id: str) -> dict[str, Any]:
     citations = orchestrator.get_policy_citations(bill_id)
+    snapshot = orchestrator.get_snapshot_by_bill(bill_id)
+    viewer_ready = snapshot.viewer_ready_format if snapshot else {}
     return {
         "citations": [citation.model_dump(mode="json", by_alias=True) for citation in citations],
+        "viewer_ready_format": viewer_ready,
     }
 
 

@@ -1,4 +1,4 @@
-import { startTransition, useMemo, useRef, useState } from 'react';
+import { startTransition, useCallback, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   CheckCircle2,
@@ -15,6 +15,7 @@ import { EmptyState, ErrorState, LoadingState } from '../../shared/components/St
 import { Pill, SectionShell } from '../../shared/components/ui';
 import { BillViewer } from '../components/BillViewer';
 import { ConsentGate } from '../components/ConsentGate';
+import { EmbeddedPDFViewer } from '../components/EmbeddedPDFViewer';
 import { GapSummary } from '../components/GapSummary';
 import { LoanComparison } from '../components/LoanComparison';
 import { PolicyCitationPanel } from '../components/PolicyCitationPanel';
@@ -78,6 +79,29 @@ export function FinancialAdvocateScreen({
   const handleCitationClick = (citationId: string) => {
     startTransition(() => setActiveCitationId(citationId));
   };
+
+  const handleJumpToPage = useCallback((_page: number, citationId: string) => {
+    startTransition(() => setActiveCitationId(citationId));
+  }, []);
+
+  // Extract viewer-ready highlights from the workflow snapshot
+  const viewerHighlights = useMemo(() => {
+    const format = workflow.snapshot?.viewer_ready_format as { highlights?: any[] } | undefined;
+    if (!format || !format.highlights) return [];
+    return format.highlights;
+  }, [workflow.snapshot?.viewer_ready_format]);
+
+  // Map activeCitationId to the corresponding highlight ID for the PDF viewer
+  const activeHighlightId = useMemo(() => {
+    if (!activeCitationId || !viewerHighlights.length) return null;
+    // viewer_ready_format highlights use chunk_id as their id
+    const match = viewerHighlights.find((h: any) =>
+      workflow.policyCitations.some(
+        (c) => c.id === activeCitationId && h.id.includes(c.id.split('-')[0])
+      )
+    );
+    return match?.id ?? viewerHighlights[0]?.id ?? null;
+  }, [activeCitationId, viewerHighlights, workflow.policyCitations]);
 
   const openPicker = () => inputRef.current?.click();
 
@@ -233,6 +257,21 @@ export function FinancialAdvocateScreen({
                 items={auditResult.items}
                 flags={auditResult.flags}
                 activeCitationId={activeCitationId}
+                pdfViewer={
+                  workflow.pdfUrl ? (
+                    <EmbeddedPDFViewer
+                      fileUrl={workflow.pdfUrl}
+                      highlights={viewerHighlights}
+                      activeHighlightId={activeHighlightId}
+                      onHighlightClick={(highlightId) => {
+                        const citation = workflow.policyCitations.find((c) =>
+                          highlightId.includes(c.id.split('-')[0])
+                        );
+                        if (citation) handleCitationClick(citation.id);
+                      }}
+                    />
+                  ) : undefined
+                }
               />
             </>
           ) : (

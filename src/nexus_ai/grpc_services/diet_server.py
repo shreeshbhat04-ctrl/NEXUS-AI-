@@ -118,6 +118,35 @@ class DietServiceServicer(diet_pb2_grpc.DietServiceServicer):
             logger.exception("GetRecipe failed")
             context.abort(grpc.StatusCode.INTERNAL, str(e))
 
+    def StreamExtractSafeIngredients(self, request, context):
+        from nexus_ai.agents.diet_multiagent.medical_analyst import analyze_patient_dietary_needs
+        from nexus_ai.agents.diet_multiagent.vision_extractor import extract_ingredients
+        from nexus_ai.services.diet.filter import generate_safe_ingredients
+        import base64
+
+        try:
+            dietary_needs = analyze_patient_dietary_needs(request.patient_id)
+            ingredients_to_avoid = dietary_needs.get("ingredients_to_avoid", [])
+            
+            image_bytes = None
+            if request.image_base64:
+                image_bytes = base64.b64decode(request.image_base64)
+                
+            extracted = extract_ingredients(url=request.url or None, image_bytes=image_bytes)
+            detected_ingredients = extracted.get("detected_ingredients", [])
+            
+            safe_ingredients = generate_safe_ingredients(detected_ingredients, ingredients_to_avoid)
+            
+            for ing in safe_ingredients:
+                yield diet_pb2.MarketplaceIngredientResponse(
+                    success=True,
+                    ingredient_json=json.dumps(ing),
+                    message="Extracted ingredient"
+                )
+        except Exception as e:
+            logger.exception("StreamExtractSafeIngredients failed")
+            context.abort(grpc.StatusCode.INTERNAL, str(e))
+
 
 def serve() -> None:
     settings = get_settings()

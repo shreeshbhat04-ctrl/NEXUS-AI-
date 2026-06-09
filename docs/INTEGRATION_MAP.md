@@ -26,27 +26,26 @@ arize_space_key: str | None = None  # For Arize Cloud
 
 ## 2. App Registration (`src/nexus_ai/app.py`)
 
-### What to add:
+The backend registers the patient finance router and sets up the MongoDB lifecycle hooks during FastAPI startup and shutdown:
 
 ```python
-# 1. Import the patient finance router
-# from nexus_ai.patient_finance.api_routes import finance_router
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from nexus_ai.patient_finance.api_routes import finance_router
+from nexus_ai.patient_finance.mongodb import close_mongodb, init_mongodb
 
-# 2. Import MongoDB lifecycle hooks
-# from nexus_ai.patient_finance.mongodb import init_mongodb, close_mongodb
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # ...
+    await init_mongodb()  # Initializes motor async database connection
+    try:
+        yield
+    finally:
+        await close_mongodb()  # Closes connection on shutdown
 
-# 3. Import Arize tracing setup
-# from nexus_ai.patient_finance.arize_tracing import init_tracing
-
-# 4. In the app startup event:
-#    await init_mongodb()
-#    init_tracing()
-
-# 5. In the app shutdown event:
-#    await close_mongodb()
-
-# 6. Mount the router:
-#    app.include_router(finance_router, prefix="/api/finance", tags=["patient-finance"])
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
+# ... middlewares
+app.include_router(finance_router)
 ```
 
 ---
@@ -100,32 +99,9 @@ ARIZE_PHOENIX_PROJECT=curequest-patient-finance
 
 ## 5. Frontend Integration (`frontend/`)
 
-### `package.json` — add dependency:
-
-```json
-"react-pdf-highlighter-extended": "^7.0.0"
-```
-
-### `App.tsx` — add route:
-
-```tsx
-// Import:
-// import FinancialAdvocateScreen from './patient/screens/FinancialAdvocateScreen'
-// import { Banknote } from 'lucide-react'
-
-// Add to navigation items array:
-// { id: 'financial', label: 'Financial Advocate', icon: Banknote }
-
-// Add to page render switch:
-// case 'financial': return <FinancialAdvocateScreen />
-```
-
-### `vite.config.ts` — add proxy for finance API:
-
-```typescript
-// In the proxy section, add:
-// '/api/finance': { target: 'http://localhost:8000', changeOrigin: true }
-```
+- **Dependencies**: Uses `react-pdf-highlighter-extended` for highlighting and annotating audited line items on the PDF bill.
+- **Routing**: `App.tsx` registers `/financial-advocate` routing and navigation items, directing the patient to `FinancialAdvocateScreen.tsx`.
+- **Proxy**: `vite.config.ts` proxies `/api/finance` to the backend server running at `http://localhost:8000`.
 
 ---
 

@@ -541,7 +541,7 @@ export function MedicationHubScreen({
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-primary/75">Medication query</p>
-              <h2 className="mt-2 font-serif text-2xl">Alternative and label console</h2>
+              <h2 className="mt-2 font-serif text-2xl">Medication label console</h2>
             </div>
             <div className="rounded-full bg-primary-fixed/45 p-3 text-primary">
               <PillBottle className="h-5 w-5" />
@@ -554,9 +554,6 @@ export function MedicationHubScreen({
           </label>
 
           <div className="flex flex-wrap gap-3">
-            <button onClick={runAlternativeCheck} className="river-stone-btn bg-gradient-to-br from-primary to-primary-container px-6 py-4 text-surface">
-              {busy === 'alternatives' ? 'Checking...' : 'Check alternatives'}
-            </button>
             <button onClick={runGroundedAnswerLookup} className="river-stone-btn bg-surface-container-low px-6 py-4 text-on-surface/75 hover:bg-surface-container-high">
               {busy === 'groundedAnswer' ? 'Looking up...' : 'Fetch grounded answer'}
             </button>
@@ -756,40 +753,7 @@ export function MedicationHubScreen({
       </SoftCard>
 
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <SoftCard>
-          <div className="flex items-center gap-3 text-secondary">
-            <ShieldAlert className="h-5 w-5" />
-            <h3 className="font-serif text-2xl">Alternative results</h3>
-          </div>
-          {alternativeResult ? (
-            <div className="mt-5 space-y-4">
-              <div className="rounded-[1.4rem] bg-surface-container-low px-4 py-3 text-sm leading-7 text-on-surface/65">
-                {alternativeResult.safety_summary}
-              </div>
-              {alternativeResult.escalation_required ? <Pill tone="terracotta">Doctor escalation recommended</Pill> : <Pill tone="sage">No escalation triggered</Pill>}
-              <div className="grid gap-4">
-                {(alternativeResult.candidates || []).map((candidate) => (
-                  <div key={candidate.name} className="rounded-[1.5rem] bg-surface-container-low p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-outline-variant/20 hover:border-primary/20 transition-all duration-300">
-                    <div className="space-y-1">
-                      <p className="font-semibold text-lg text-on-surface">{candidate.name}</p>
-                      <p className="text-sm leading-6 text-on-surface/60">{candidate.formulation_note}</p>
-                      <p className="text-xs font-medium text-secondary">{candidate.safety_note}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleAddAlternativeToCart(candidate.name)}
-                      className="river-stone-btn shrink-0 bg-primary/10 text-primary hover:bg-primary hover:text-white text-xs font-bold tracking-wider px-4 py-2.5 transition-all duration-200"
-                    >
-                      Add to Cart
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <EmptyState title="No alternative run yet" description="Check a medication and this area will turn into a safety-aware alternative workspace." />
-          )}
-        </SoftCard>
+
 
         <SoftCard>
           <div className="flex items-center gap-3 text-primary">

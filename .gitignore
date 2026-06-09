@@ -73,3 +73,6 @@ agent/workflows/
 # Tool-generated indexing directories
 .understand-anything/
 
+.gemini/
+GEMINI.md
+graphify-out/

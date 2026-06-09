@@ -18,7 +18,9 @@ There are three runtime entrypoints in the project today:
 2. Google ADK web agent
 3. Local MCP server
 
-These sit on top of one shared database layer that should ultimately point to AlloyDB.
+These sit on top of a multi-database layer:
+- **PostgreSQL (Postgres)** handles core relational patient profile, vitals, chronic conditions, and medication event history.
+- **MongoDB** handles financial documents (PDF GridFS), audited items, out-of-pocket gaps, policy grounding text chunks, and credit financing terms.
 
 ## 2. Connection map
 
@@ -95,9 +97,9 @@ Current implementation:
 
 - database through `DATABASE_URL`
 - Google Workspace (Drive, Gmail, Calendar)
-- Asana (Ticketing/Escalation)
+- Task Queue (Ticketing/Escalation)
 - Gemini 3.1 Flash (Reasoning)
-- MedSigLIP (Vision/Imaging)
+- Gemini Vision (Vision/Imaging)
 
 Future external connections:
 
@@ -143,7 +145,7 @@ Current implementation:
 - utility tools: `ping`, `check_emergency`, `patient_context_summary`
 - brain tools: `brain_get_patient_profile`, `brain_get_relevant_conditions`
 - recipe tools: `recipe_lookup`, `dietary_safety_check`
-- workspace tools: `create_asana_task`, `send_gmail_summary`
+- workspace tools: `create_task queue_task`, `send_gmail_summary`
 
 Required external connections:
 
@@ -155,11 +157,11 @@ Current external MCP servers:
 
 Future external connections:
 
-- MCP Toolbox for AlloyDB
+- MCP Toolbox for PostgreSQL
 - ticketing MCP servers
-- Gmail / Calendar / Asana style tools
+- Gmail / Calendar / Task Queue style tools
 
-### Database / AlloyDB
+### Database / PostgreSQL
 
 Purpose:
 
@@ -174,7 +176,7 @@ Current implementation:
 
 Target production-like path:
 
-- set `DATABASE_URL` to an AlloyDB/Postgres connection string
+- set `DATABASE_URL` to an PostgreSQL/Postgres connection string
 - keep app code unchanged
 - rerun bootstrap and connection tests
 
@@ -188,6 +190,36 @@ Current DB entities:
 - `notifications` (alert history)
 - `recipes` (condition-aware ingredients)
 - `health_connect_sync` (wearable logs)
+
+### MongoDB / GridFS
+
+Purpose:
+
+- Document storage for medical bills, itemized audited records, matched loan terms, and signed patient consents.
+- GridFS for archiving raw uploaded bill PDFs.
+
+Connection settings:
+- `MONGODB_URI`: connection string (e.g. `mongodb://localhost:27017/curequest_finance` or MongoDB Atlas link)
+- `MONGODB_DATABASE`: name of database (e.g. `curequest_finance`)
+
+Current MongoDB collections:
+- `bills` (document metadata and GridFS file links)
+- `bill_audits` (individual audited line items and duplicate flags)
+- `patient_gaps` (patient obligation cost calculations)
+- `loan_offers` (matched financing loan options)
+- `policy_chunks` (text chunks of coverage policies for grounding queries)
+- `consent_logs` (checked authorization signatures)
+
+### Arize Phoenix Tracing
+
+Purpose:
+
+- LLM Observability & Tracing via standard OpenTelemetry exporters.
+- Captures full agent execution traces, token consumption, and model invocation latencies.
+
+Connection settings:
+- `ARIZE_PHOENIX_URL`: dashboard host URL (e.g. `http://localhost:6006`)
+- `ARIZE_PHOENIX_PROJECT`: logical project tracing container (e.g. `curequest-patient-finance`)
 
 ## 4. Recommended connection sequence
 
@@ -239,7 +271,7 @@ Recommended local progression:
 
 ## 6. External integrations to wire after the core stack
 
-Treat these as separate workstreams after API, ADK, MCP, and AlloyDB are stable.
+Treat these as separate workstreams after API, ADK, MCP, and PostgreSQL are stable.
 
 ### Notifications / Summaries
 
@@ -250,7 +282,7 @@ Current state:
 ### Doctor review / tickets
 
 Current state:
-- **Asana**: Integrated for clinician task escalation.
+- **Task Queue**: Integrated for clinician task escalation.
 - **HITL Flow**: Structured data packets produced for doctor review.
 
 ### Pharmacy & Location
@@ -286,4 +318,4 @@ You can consider the infrastructure phase complete when all of these are true:
 4. `BRAIN_GATEWAY_MODE=mcp` works for API reads.
 5. `adk web` launches from `adk_agents`.
 6. The ADK UI can call at least one MCP brain tool successfully.
-7. Switching from SQLite to AlloyDB only requires env/config changes, not code rewrites.
+7. Switching from SQLite to PostgreSQL only requires env/config changes, not code rewrites.

@@ -7,7 +7,6 @@ from typing import Optional, List
 
 from nexus_ai_doctor.services.notebook_service import NotebookService
 from nexus_ai_doctor.services.gemini_copilot import GeminiCopilot
-from nexus_ai_doctor.services.imaging_service import ImagingService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -15,7 +14,6 @@ router = APIRouter()
 # Initialize services
 notebook_service = NotebookService()
 gemini_copilot = GeminiCopilot()
-imaging_service = ImagingService()
 
 class ChatRequest(BaseModel):
     message: str
@@ -126,26 +124,3 @@ async def upload_file_to_sandbox(
         logger.error(f"Failed to upload file to sandbox: {e}")
         return {"success": False, "error": str(e)}
 
-# --- 3D Imaging Reconstruction Endpoints ---
-
-@router.post("/imaging/reconstruct")
-async def reconstruct_3d(
-    ap_xray: UploadFile = File(...),
-    lat_xray: UploadFile = File(...)
-):
-    try:
-        ap_bytes = await ap_xray.read()
-        lat_bytes = await lat_xray.read()
-        
-        # Save to static directory for serving to OHIF viewer
-        study_dir = os.path.join("static", "dicoms", "study_1")
-        imaging_service.reconstruct_ct(ap_bytes, lat_bytes, study_dir)
-        
-        # Check if there is a custom base URL configured, otherwise construct local
-        host_url = os.environ.get("DOCTOR_BACKEND_URL", "http://localhost:8000")
-        dicom_url = f"{host_url}/static/dicoms/study_1"
-        
-        return {"status": "success", "dicom_url": dicom_url}
-    except Exception as e:
-        logger.error(f"Failed to run reconstruction: {e}")
-        raise HTTPException(status_code=500, detail=str(e))

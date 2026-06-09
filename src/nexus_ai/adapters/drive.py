@@ -88,6 +88,8 @@ class GoogleDriveAdapter:
             "image/png": ".png",
             "image/jpeg": ".jpg",
             "image/webp": ".webp",
+            "application/pdf": ".pdf",
+            "application/octet-stream": ".pdf",
         }.get(mime_type, ".png")
         return f"{disease_slug}_{capture_date}{extension}"
 

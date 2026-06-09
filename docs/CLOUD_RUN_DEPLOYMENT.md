@@ -11,7 +11,7 @@ This repository is prepared to deploy the FastAPI backend to Google Cloud Run.
 ## Important deployment notes
 
 - Cloud Run is **stateless**. Do not rely on local SQLite or local token files in production.
-- Use a managed database such as AlloyDB / Postgres for `DATABASE_URL`.
+- Use a managed database such as PostgreSQL / Postgres for `DATABASE_URL`.
 - Store sensitive values in Secret Manager and inject them into Cloud Run.
 - The frontend should point `VITE_API_BASE_URL` to the Cloud Run service URL.
 - Patient-linked Google OAuth tokens stored in the database are preferred for Drive / Calendar / Gmail actions in production.

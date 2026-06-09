@@ -118,4 +118,17 @@
   .sidebar-active {
     @apply bg-primary-fixed text-primary font-medium;
   }
+
+  /* Citation Popovers */
+  .citation-marker {
+    font-family: var(--font-sans);
+  }
+
+  .citation-popover {
+    @apply rounded-2xl bg-white/95 backdrop-blur-[20px] border border-outline-variant/20 shadow-[0_4px_16px_rgba(60,64,67,0.1)];
+  }
+
+  .citation-rendered-text {
+    @apply leading-relaxed;
+  }
 }

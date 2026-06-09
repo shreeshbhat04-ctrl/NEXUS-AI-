@@ -2229,6 +2229,22 @@ def multiagent_extract_safe_ingredients(payload: ExtractSafeIngredientsRequest):
     
     return ExtractSafeIngredientsResponse(safe_ingredients=safe_ingredients)
 
+from fastapi.responses import StreamingResponse
+
+@router.post("/diet/multiagent/extract-safe-ingredients-stream")
+async def multiagent_extract_safe_ingredients_stream(payload: ExtractSafeIngredientsRequest):
+    async def event_generator():
+        import json
+        for resp in orchestrator.diet_client.stream_extract_safe_ingredients(
+            patient_id=payload.patient_id,
+            url=payload.url,
+            image_base64=payload.image_base64
+        ):
+            if resp.success:
+                yield json.dumps({"type": "ingredient", "data": json.loads(resp.ingredient_json)}) + "\n"
+    
+    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+
 class GenerateCulinaryRecipeRequest(BaseModel):
     safe_ingredients: list[str]
     cuisine_style: str

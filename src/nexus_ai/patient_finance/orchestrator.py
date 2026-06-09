@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import datetime
+import os
+import tempfile
 from decimal import Decimal
 from typing import Any, Callable
 from uuid import uuid4
 
+from nexus_ai.adapters.drive import GoogleDriveAdapter
 from nexus_ai.config import get_settings
 from nexus_ai.grpc_clients.brain_client import BrainClient
 from nexus_ai.patient_finance.billing import audit_bill, parse_itemized_bill
@@ -68,11 +72,55 @@ class PatientFinanceOrchestrator:
 
     def start_workflow(self, patient_id: int, filename: str, content_type: str, raw_bytes: bytes) -> WorkflowSnapshot:
         patient_profile = self._build_patient_profile(patient_id)
+        
+        drive_file_id = None
+        drive_link = None
+        try:
+            adapter = GoogleDriveAdapter()
+            doctor_name = patient_profile.get("assigned_doctor", "System")
+            patient_name = patient_profile.get("full_name", f"Patient-{patient_id}")
+            conditions = patient_profile.get("conditions", [])
+            disease_name = conditions[0] if conditions else "unknown-disease"
+            
+            folder_id, _ = adapter.resolve_hierarchical_folder(
+                root_folder_id=adapter.settings.google_drive_folder_id,
+                doctor_name=doctor_name,
+                patient_name=patient_name,
+                category_name="Bills",
+            )
+            
+            capture_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            drive_file_name = adapter.build_storage_filename(
+                disease_name=disease_name,
+                capture_date=capture_date,
+                mime_type=content_type,
+            )
+            
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp.write(raw_bytes)
+                tmp_path = tmp.name
+                
+            try:
+                uploaded = adapter.upload_file(
+                    file_path=tmp_path,
+                    mime_type=content_type,
+                    folder_id=folder_id,
+                    file_name=drive_file_name,
+                )
+                drive_file_id = uploaded.get("id")
+                drive_link = uploaded.get("webViewLink")
+            finally:
+                os.remove(tmp_path)
+        except Exception as e:
+            print(f"Drive upload failed: {e}")
+
         bill_id = create_bill(
             patient_id=str(patient_id),
             filename=filename,
             content_type=content_type,
             raw_bytes=raw_bytes,
+            drive_file_id=drive_file_id,
+            drive_link=drive_link,
         )
         session_id = f"finance-session-{uuid4().hex[:12]}"
         session_state = initialize_session(str(patient_id), bill_id, patient_profile)
@@ -108,9 +156,11 @@ class PatientFinanceOrchestrator:
         policy_chunks = parse_policy_chunks()
         source_doc_id = policy_chunks[0].source_doc_id if policy_chunks else "POLICY-HMO-2026-SAMPLE"
         citation_query = " ".join(flag.reason for flag in audit_result.flags) or "deductible coverage"
-        citations = build_citation_payload(retrieve_relevant_chunks(citation_query, source_doc_id)).citations
+        citation_payload = build_citation_payload(retrieve_relevant_chunks(citation_query, source_doc_id))
+        citations = citation_payload.citations
         session_state = update_state(session_state, "policy_citations", citations)
         snapshot.policy_citations = citations
+        snapshot.viewer_ready_format = citation_payload.viewer_ready_format
 
         for index, flag in enumerate(snapshot.audit_result.flags):
             linked = [citation.id for citation in citations[index:index + 2]]
