@@ -12,6 +12,7 @@ from google.genai import types
 from nexus_ai.config import get_settings
 from nexus_ai.db.models import CartItem, Notification
 from nexus_ai.adapters.notifications import MockNotificationAdapter
+from nexus_ai.utils.url_router import ProductUrlRouter
 
 logger = logging.getLogger(__name__)
 
@@ -55,9 +56,10 @@ class ShoppingService:
         for item in items:
             old_status = item.status
             
-            if item.source_url:
+            url_to_check = item.source_url or ProductUrlRouter.get_search_url(item.item_name, item.item_type)
+            if url_to_check:
                 # Real/Simulated URL check
-                checked_info = self._check_url_availability(item.source_url)
+                checked_info = self._check_url_availability(url_to_check)
             else:
                 # Name-based fallback lookup
                 checked_info = self._get_mock_availability_for_name(item.item_name)

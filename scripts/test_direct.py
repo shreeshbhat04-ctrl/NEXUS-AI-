@@ -21,12 +21,14 @@ async def test_mongo():
 def test_cloud_sql():
     print('Testing Cloud SQL...')
     connector = Connector()
+    connection_name = os.environ.get('CLOUD_SQL_CONNECTION_NAME', 'mindful-hull-496817-q3:us-central1:nexusai')
+    password = os.environ.get('CLOUD_SQL_PASSWORD', 'Nexusai@123!')
     try:
         conn = connector.connect(
-            "mindful-hull-496817-q3:us-central1:nexusai",
+            connection_name,
             "pg8000",
             user="postgres",
-            password="Nexusai@123!",
+            password=password,
             db="postgres",
             ip_type=IPTypes.PUBLIC,
         )

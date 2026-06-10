@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from nexus_ai.agents.orchestrator import Orchestrator
+from nexus_ai.utils.url_router import ProductUrlRouter
 from nexus_ai.api.models import (
     ActionConfirmRequest,
     ActionConfirmResponse,
@@ -1718,7 +1719,7 @@ def get_market_ingredients(
                     if name:
                         ingredients.append({
                             "name": name,
-                            "search_url": f"https://www.bigbasket.com/ps/?q={name.replace(' ', '+')}",
+                            "search_url": ProductUrlRouter.get_search_url(name, "ingredient"),
                         })
         except Exception:
             pass
@@ -1726,7 +1727,7 @@ def get_market_ingredients(
     if not ingredients:
         fallback_items = ["rice", "dal", "turmeric", "ghee", "salt"]
         ingredients = [
-            {"name": item, "search_url": f"https://www.bigbasket.com/ps/?q={item}"}
+            {"name": item, "search_url": ProductUrlRouter.get_search_url(item, "ingredient")}
             for item in fallback_items
         ]
 
@@ -2324,7 +2325,7 @@ def add_to_cart(patient_id: int, payload: CartItemCreateRequest, db: Session = D
         item_name=payload.item_name,
         item_type=payload.item_type,
         price=payload.price,
-        source_url=payload.source_url,
+        source_url=payload.source_url or ProductUrlRouter.get_search_url(payload.item_name, payload.item_type),
         status="checking",
     )
     db.add(item)
